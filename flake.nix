@@ -74,8 +74,15 @@
         };
       in
       rec {
-        packages.default = (pkgs.poetry2nix.mkPoetryApplication mkPoetryArgs);
-        apps.default = flake-utils.lib.mkApp { drv = packages.default; };
+        packages = {
+          default = pkgs.poetry2nix.mkPoetryApplication mkPoetryArgs;
+          containerImage = (pkgs.dockerTools.streamLayeredImage {
+            name = pyProject.tool.poetry.name;
+            contents = [ packages.default ];
+            config.Cmd = [ "/bin/${pyProject.tool.poetry.name}" ];
+          }).overrideAttrs (old: { passthru.exePath = ""; });
+        };
+        apps = pkgs.lib.mapAttrs (k: v: flake-utils.lib.mkApp { drv = v; }) packages;
         devShells.default = (
           (pkgs.poetry2nix.mkPoetryEnv (mkPoetryArgs // mkPoetryEnvEditableArgs)).env.overrideAttrs (
             oldAttrs: {
