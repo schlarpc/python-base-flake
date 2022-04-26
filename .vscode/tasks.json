@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run all pre-commit checks",
+      "type": "shell",
+      "command": "pre-commit run --all-files",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run nix flake checks",
+      "type": "shell",
+      "command": "nix flake check",
+      "problemMatcher": []
+    }
+  ]
+}
