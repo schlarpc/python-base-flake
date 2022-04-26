@@ -2,6 +2,16 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Build nix flake",
+      "type": "shell",
+      "command": "nix build",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
       "label": "Run all pre-commit checks",
       "type": "shell",
       "command": "pre-commit run --all-files",
