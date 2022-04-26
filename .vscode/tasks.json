@@ -30,6 +30,18 @@
         "kind": "test",
         "isDefault": false
       }
+    },
+    {
+      "label": "Update Python dependencies",
+      "type": "shell",
+      "command": "poetry update",
+      "problemMatcher": []
+    },
+    {
+      "label": "Update nix flake dependencies",
+      "type": "shell",
+      "command": "nix flake update",
+      "problemMatcher": []
     }
   ]
 }
