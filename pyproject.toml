@@ -21,9 +21,9 @@ python-base-flake = "python_base_flake._cli:main"
 line-length = 99
 
 [tool.coverage]
+report.show_missing = true
 run.source_pkgs = [ "python_base_flake" ]
 run.branch = true
-report.show_missing = true
 
 [tool.isort]
 combine_as_imports = true
@@ -34,11 +34,13 @@ src_paths = [ "src", "tests" ]
 
 [tool.mypy]
 check_untyped_defs = true
+files = [ "src", "tests" ]
+ignore_missing_imports = true
 no_implicit_optional = true
+pretty = true
 show_error_codes = true
 warn_return_any = true
 warn_unused_ignores = true
-files = [ "src", "tests" ]
 
 [tool.pytest.ini_options]
 addopts = "--cov"
