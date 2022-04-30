@@ -106,7 +106,10 @@
             in
             {
               shellcheck.enable = true;
-              black.enable = true;
+              black = {
+                enable = true;
+                entry = pkgs.lib.mkForce (poetryPreCommit "black" ''black "$@"'');
+              };
               nixpkgs-fmt.enable = true;
               prettier = {
                 enable = true;
