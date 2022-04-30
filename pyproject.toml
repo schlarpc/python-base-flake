@@ -19,6 +19,10 @@ pytest-cov = "^3.0.0"
 [tool.poetry.scripts]
 python-base-flake = "python_base_flake._cli:main"
 
+[tool.nixpkgs]
+dependencies = [ ]
+dev-dependencies = [ ]
+
 [tool.black]
 line-length = 99
 

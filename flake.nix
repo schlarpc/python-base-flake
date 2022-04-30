@@ -34,6 +34,9 @@
           python = projectConfig.python;
           projectDir = ./.;
         };
+        nixpkgsAttrMap = attrnames: builtins.map (p: pkgs.${p}) attrnames;
+        pyProjectNixpkgsDeps = nixpkgsAttrMap (pyProject.tool.nixpkgs.dependencies or [ ]);
+        pyProjectNixpkgsDevDeps = pyProjectNixpkgsDeps ++ nixpkgsAttrMap (pyProject.tool.nixpkgs.dev-dependencies or [ ]);
         # HACK work around a bug in poetry2nix where the .egg-info is named incorrectly
         pkgInfoFields = {
           Metadata-Version = "2.1";
@@ -75,10 +78,13 @@
       in
       rec {
         packages = {
-          default = pkgs.poetry2nix.mkPoetryApplication mkPoetryArgs;
+          default = (pkgs.poetry2nix.mkPoetryApplication mkPoetryArgs).overrideAttrs (old: {
+            propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ pyProjectNixpkgsDeps;
+          });
           containerImage = (pkgs.dockerTools.streamLayeredImage {
             name = pyProject.tool.poetry.name;
-            contents = [ packages.default ];
+            # add deps to contents so they can be invoked directly if needed (e.g. /bin/someprogram)
+            contents = [ packages.default ] ++ pyProjectNixpkgsDeps;
             config.Cmd = [ "/bin/${pyProject.tool.poetry.name}" ];
           }).overrideAttrs (old: { passthru.exePath = ""; });
         };
@@ -86,7 +92,7 @@
         devShells.default = (
           (pkgs.poetry2nix.mkPoetryEnv (mkPoetryArgs // mkPoetryEnvEditableArgs)).env.overrideAttrs (
             oldAttrs: {
-              buildInputs = [ pkgs.poetry pkgs.poetry2nix.cli ];
+              buildInputs = [ pkgs.poetry pkgs.poetry2nix.cli ] ++ pyProjectNixpkgsDevDeps;
               shellHook = ''
                 ${checks.pre-commit-hooks.shellHook}
               '';
