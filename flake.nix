@@ -20,7 +20,7 @@
     flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-linux" ] (system:
       let
         projectConfig = {
-          python = pkgs.python3;
+          python = pkgs.python310;
           dependencyOverrides = (final: prev: { });
         };
         pyProject = builtins.fromTOML (builtins.readFile (./. + "/pyproject.toml"));
