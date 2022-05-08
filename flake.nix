@@ -21,13 +21,7 @@
       let
         projectConfig = {
           python = pkgs.python310;
-          dependencyOverrides = (final: prev: {
-            myst-parser = prev.myst-parser.overridePythonAttrs (
-              old: {
-                nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ projectConfig.python.pkgs.flit-core ];
-              }
-            );
-          });
+          dependencyOverrides = (final: prev: { });
         };
         pyProject = builtins.fromTOML (builtins.readFile (./. + "/pyproject.toml"));
         pkgs = import nixpkgs {
