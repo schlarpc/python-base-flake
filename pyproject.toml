@@ -10,7 +10,6 @@ python = "^3.9"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
-hatch-vcs = "^0.2.0"
 isort = "^5.10.1"
 mypy = "^0.942"
 pytest = "^7.1.1"
