@@ -27,9 +27,11 @@ dev-dependencies = [ ]
 line-length = 99
 
 [tool.coverage]
+html.directory = "docs/generated/coverage"
 report.show_missing = true
 run.source_pkgs = [ "python_base_flake" ]
 run.branch = true
+xml.output = "docs/generated/coverage/coverage.xml"
 
 [tool.isort]
 combine_as_imports = true
@@ -49,7 +51,7 @@ warn_return_any = true
 warn_unused_ignores = true
 
 [tool.pytest.ini_options]
-addopts = "--cov"
+addopts = "--cov --cov-report html --cov-report xml"
 testpaths = [ "tests" ]
 
 [build-system]
