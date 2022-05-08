@@ -10,14 +10,14 @@ python = "^3.9"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
+copier = "6.0.0b0"
 isort = "^5.10.1"
 mypy = "^0.942"
+myst-parser = "^0.17.2"
 pytest = "^7.1.1"
 pytest-cov = "^3.0.0"
-sphinx-autodoc-typehints = "^1.18.1"
 Sphinx = "^4.5.0"
-myst-parser = "^0.17.2"
-copier = "6.0.0b0"
+sphinx-autodoc-typehints = "^1.18.1"
 
 [tool.poetry.scripts]
 python-base-flake = "python_base_flake._cli:main"
