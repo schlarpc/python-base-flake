@@ -21,7 +21,13 @@
       let
         projectConfig = {
           python = pkgs.python310;
-          dependencyOverrides = (final: prev: { });
+          dependencyOverrides = (final: prev: {
+            myst-parser = prev.myst-parser.overridePythonAttrs (
+              old: {
+                nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ projectConfig.python.pkgs.flit-core ];
+              }
+            );
+          });
         };
         pyProject = builtins.fromTOML (builtins.readFile (./. + "/pyproject.toml"));
         pkgs = import nixpkgs {
@@ -139,6 +145,12 @@
                   # ${ pkgs.poetry2nix.cleanPythonSources { src = ./.; } + "/src" }
                   pytest "$@"
                 '';
+                pass_filenames = false;
+              };
+              sphinx = {
+                enable = true;
+                name = "sphinx";
+                entry = poetryPreCommit "sphinx" "sphinx-build docs/ docs/generated/";
                 pass_filenames = false;
               };
             };
