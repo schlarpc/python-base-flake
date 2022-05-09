@@ -10,7 +10,7 @@ python = "^3.9"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
-copier = "6.0.0b0"
+cruft = "^2.10.2"
 isort = "^5.10.1"
 mypy = "^0.942"
 myst-parser = "^0.17.2"
