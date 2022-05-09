@@ -147,6 +147,17 @@
                 entry = poetryPreCommit "sphinx" "sphinx-build docs/ docs/generated/";
                 pass_filenames = false;
               };
+              no-merge-rejects = {
+                enable = true;
+                name = "no-merge-rejects";
+                entry = poetryPreCommit "no-merge-rejects" ''
+                  for filename in "$@"; do
+                    echo "Rejected merge file exists: $filename"
+                  done
+                  exit 1
+                '';
+                files = "\\.rej$";
+              };
             };
         };
       });
