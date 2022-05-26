@@ -119,7 +119,7 @@
               nixpkgs-fmt.enable = true;
               prettier = {
                 enable = true;
-                types_or = [ "markdown" "json" ];
+                types_or = [ "markdown" "json" "yaml" ];
               };
               isort = {
                 enable = true;
