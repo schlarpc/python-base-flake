@@ -12,12 +12,16 @@ jobs:
       - uses: actions/checkout@v3.0.2
 
       - run: |
+          PROJECT_NAME_PATTERN='s/python-base-flake/{{ cookiecutter.project_name }}/g'
+          MODULE_NAME_PATTERN='s/python_base_flake/{{ cookiecutter.module_name }}/g'
           DEST=".template/{{ cookiecutter.project_name }}"
           mkdir -p "$DEST"
           for entry in $(git ls-tree -r "${GITHUB_REF##*/}" --name-only); do
-            NEW_NAME="$(echo $entry | sed 's/python_base_flake/{{ cookiecutter.module_name }}/g')"
+            NEW_NAME="$(echo $entry | sed "$MODULE_NAME_PATTERN" | sed "$PROJECT_NAME_PATTERN")"
             mkdir -p "$(dirname "$DEST/$NEW_NAME")"
             cp -p "$entry" "$DEST/$NEW_NAME"
+            sed -i "$DEST/$NEW_NAME" "$MODULE_NAME_PATTERN"
+            sed -i "$DEST/$NEW_NAME" "$PROJECT_NAME_PATTERN"
           done
           rm -rf "$DEST/.template" "$DEST/.github/workflows/generate-template.yml"
 
