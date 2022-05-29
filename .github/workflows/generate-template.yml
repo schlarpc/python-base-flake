@@ -20,8 +20,8 @@ jobs:
             NEW_NAME="$(echo $entry | sed "$MODULE_NAME_PATTERN" | sed "$PROJECT_NAME_PATTERN")"
             mkdir -p "$(dirname "$DEST/$NEW_NAME")"
             cp -p "$entry" "$DEST/$NEW_NAME"
-            sed -i "$DEST/$NEW_NAME" "$MODULE_NAME_PATTERN"
-            sed -i "$DEST/$NEW_NAME" "$PROJECT_NAME_PATTERN"
+            sed -i "$MODULE_NAME_PATTERN" "$DEST/$NEW_NAME"
+            sed -i "$PROJECT_NAME_PATTERN" "$DEST/$NEW_NAME"
           done
           rm -rf "$DEST/.template" "$DEST/.github/workflows/generate-template.yml"
 
