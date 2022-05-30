@@ -129,7 +129,7 @@
               prettier = {
                 enable = true;
                 types_or = [ "markdown" "json" "yaml" ];
-                excludes = [ "^\\.template/cookiecutter\\.json$" ];
+                excludes = [ "^\\.template/.+/\\.cruft\\.json$" ];
               };
               isort = {
                 enable = true;
