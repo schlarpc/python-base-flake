@@ -73,7 +73,12 @@
               ${
                 pkgs.lib.concatMapStringsSep
                 "\n"
-                (pkg: ''mkdir "${pkg}.egg-info"; ln -s "${pkgInfoFile}" "${pkg}.egg-info/PKG-INFO"'')
+                (pkg: (
+                    # TODO this does not cover all cases
+                    if (builtins.match "^[a-z]+$" pkg == null)
+                    then ''mkdir "${pkg}.egg-info"; ln -s "${pkgInfoFile}" "${pkg}.egg-info/PKG-INFO"''
+                    else ""
+                ))
                 moduleNames
               }
             ''));
