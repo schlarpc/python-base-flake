@@ -1,0 +1,3 @@
+{
+  "commit": "{{ self.__init__.__globals__.__builtins__.__import__('subprocess').check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').strip() }}"
+}
