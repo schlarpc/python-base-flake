@@ -1,0 +1,4 @@
+{
+  "project_name": "",
+  "module_name": "{{ cookiecutter.project_name | slugify(separator='_') }}"
+}

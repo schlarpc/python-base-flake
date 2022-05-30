@@ -1,0 +1,9 @@
+/.direnv/
+/.hypothesis
+/.pytest_cache/
+/.pre-commit-config.yaml
+/result
+*.pyc
+__pycache__/
+.coverage
+/docs/generated/

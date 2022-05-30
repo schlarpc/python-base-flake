@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build nix flake",
+      "type": "shell",
+      "command": "nix build",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Run all pre-commit checks",
+      "type": "shell",
+      "command": "pre-commit run --all-files",
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Run nix flake checks",
+      "type": "shell",
+      "command": "nix flake check",
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Update Python dependencies",
+      "type": "shell",
+      "command": "poetry update",
+      "problemMatcher": []
+    },
+    {
+      "label": "Update nix flake dependencies",
+      "type": "shell",
+      "command": "nix flake update",
+      "problemMatcher": []
+    }
+  ]
+}
