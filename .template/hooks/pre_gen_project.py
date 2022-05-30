@@ -13,7 +13,7 @@ def main():
     for check_name, check in REGEX_CHECKS.items():
         if not re.match(check["pattern"], check["value"]):
             print(
-                f"ERROR: {check['value']} is not a valid {check_name}, "
+                f"ERROR: {check['value']!r} is not a valid {check_name}, "
                 f"must match {check['pattern']!r}",
                 file=sys.stderr,
             )
