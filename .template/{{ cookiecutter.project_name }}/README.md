@@ -53,5 +53,5 @@ $ nix flake update
 ## Updating the base template
 
 ```shell
-$ cruft update
+$ cruft update --checkout template
 ```
