@@ -16,6 +16,7 @@ jobs:
           MODULE_NAME_PATTERN='s/python_base_flake/{{ cookiecutter.module_name }}/g'
           DEST=".template/{{ cookiecutter.project_name }}"
           mkdir -p "$DEST"
+          IFS=$'\n'
           for entry in $(git ls-tree -r "${GITHUB_REF##*/}" --name-only); do
             NEW_NAME="$(echo $entry | sed "$MODULE_NAME_PATTERN" | sed "$PROJECT_NAME_PATTERN")"
             mkdir -p "$(dirname "$DEST/$NEW_NAME")"
