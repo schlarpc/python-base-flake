@@ -1,5 +1,8 @@
 {
   "template": "{{ self.__init__.__globals__.__builtins__.__import__('subprocess').check_output(['git', 'remote', 'get-url', 'origin'], encoding='utf-8').strip() }}",
   "commit": "{{ self.__init__.__globals__.__builtins__.__import__('subprocess').check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').strip() }}",
-  "checkout": "{{ self.__init__.__globals__.__builtins__.__import__('subprocess').check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], encoding='utf-8').strip() }}"
+  "checkout": "{{ self.__init__.__globals__.__builtins__.__import__('subprocess').check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], encoding='utf-8').strip() }}",
+  "context": {
+    "cookiecutter": {{ self.__init__.__globals__.__builtins__.__import__('json').dumps(cookiecutter, sort_keys=True, indent=2) | indent(width=4) }}
+  }
 }
