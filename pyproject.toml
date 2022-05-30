@@ -37,6 +37,9 @@ run.source_pkgs = [ "python_base_flake" ]
 run.branch = true
 xml.output = "docs/generated/coverage/coverage.xml"
 
+[tool.cruft]
+skip = [ ".git" ]
+
 [tool.isort]
 combine_as_imports = true
 line_length = 99
