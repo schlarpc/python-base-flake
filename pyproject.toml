@@ -38,7 +38,7 @@ run.branch = true
 xml.output = "docs/generated/coverage/coverage.xml"
 
 [tool.cruft]
-skip = [ ".git" ]
+skip = [ ".git", "tests" ]
 
 [tool.isort]
 combine_as_imports = true
