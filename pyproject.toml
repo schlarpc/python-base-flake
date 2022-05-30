@@ -10,7 +10,6 @@ python = "^3.9"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
-cruft = {extras = ["toml"], version = "^2.10.2"}
 isort = "^5.10.1"
 mypy = "^0.960"
 myst-parser = "^0.17.2"
@@ -19,6 +18,7 @@ pytest-cov = "^3.0.0"
 Sphinx = "^4.5.0"
 sphinx-autoapi = "^1.8.4"
 tomli = "^2.0.1"
+cruft = {extras = ["pyproject"], version = "^2.10.2"}
 
 [tool.poetry.scripts]
 python-base-flake = "python_base_flake._cli:main"
