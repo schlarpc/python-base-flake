@@ -7,6 +7,10 @@ REGEX_CHECKS = {
         "value": r""" {{ cookiecutter.project_name | jsonify }} """,
         "pattern": r"^[A-Za-z0-9-]+$",
     },
+    "module_name": {
+        "value": r""" {{ cookiecutter.module_name | jsonify }} """,
+        "pattern": r"^[A-Za-z_][A-Za-z0-9_]+$",
+    },
 }
 
 
