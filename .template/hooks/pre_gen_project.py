@@ -1,9 +1,10 @@
+import json
 import re
 import sys
 
 REGEX_CHECKS = {
     "project_name": {
-        "value": "{{ cookiecutter.project_name }}",
+        "value": r""" {{ cookiecutter.project_name | jsonify }} """,
         "pattern": r"^[A-Za-z0-9-]+$",
     },
 }
@@ -11,7 +12,7 @@ REGEX_CHECKS = {
 
 def main():
     for check_name, check in REGEX_CHECKS.items():
-        if not re.match(check["pattern"], check["value"]):
+        if not re.match(check["pattern"], json.loads(check["value"])):
             print(
                 f"ERROR: {check['value']!r} is not a valid {check_name}, "
                 f"must match {check['pattern']!r}",
