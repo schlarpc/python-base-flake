@@ -74,8 +74,7 @@
                 pkgs.lib.concatMapStringsSep
                 "\n"
                 (pkg: (
-                    # TODO this does not cover all cases
-                    if (builtins.match "^[a-z]+$" pkg == null)
+                    if (pkg != pyProject.tool.poetry.name)
                     then ''mkdir "${pkg}.egg-info"; ln -s "${pkgInfoFile}" "${pkg}.egg-info/PKG-INFO"''
                     else ""
                 ))
