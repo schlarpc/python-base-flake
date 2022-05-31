@@ -16,9 +16,10 @@ REGEX_CHECKS = {
 
 def main():
     for check_name, check in REGEX_CHECKS.items():
-        if not re.match(check["pattern"], json.loads(check["value"])):
+        value = json.loads(check["value"])
+        if not re.match(check["pattern"], value):
             print(
-                f"ERROR: {check['value']!r} is not a valid {check_name}, "
+                f"ERROR: {value!r} is not a valid {check_name}, "
                 f"must match {check['pattern']!r}",
                 file=sys.stderr,
             )
