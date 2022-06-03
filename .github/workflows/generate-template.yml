@@ -14,15 +14,21 @@ jobs:
       - run: |
           PROJECT_NAME_PATTERN='s/python-base-flake/{{ cookiecutter.project_name }}/g'
           MODULE_NAME_PATTERN='s/python_base_flake/{{ cookiecutter.module_name }}/g'
+          AUTHOR_NAME_PATTERN='s/Chaz Schlarp/{{ cookiecutter.author_name }}/g'
+          AUTHOR_EMAIL_PATTERN='s/schlarpc@gmail.com/{{ cookiecutter.author_email }}/g'
           DEST=".template/{{ cookiecutter.project_name }}"
           mkdir -p "$DEST"
           IFS=$'\n'
           for entry in $(git ls-tree -r "${GITHUB_REF##*/}" --name-only); do
-            NEW_NAME="$(echo $entry | sed "$MODULE_NAME_PATTERN" | sed "$PROJECT_NAME_PATTERN")"
+            NEW_NAME="$(echo $entry | \
+              sed "$MODULE_NAME_PATTERN" | sed "$PROJECT_NAME_PATTERN" \
+              sed "$AUTHOR_NAME_PATTERN" | sed "$AUTHOR_EMAIL_PATTERN")"
             mkdir -p "$(dirname "$DEST/$NEW_NAME")"
             cp -pn "$entry" "$DEST/$NEW_NAME"
             sed -i "$MODULE_NAME_PATTERN" "$DEST/$NEW_NAME"
             sed -i "$PROJECT_NAME_PATTERN" "$DEST/$NEW_NAME"
+            sed -i "$AUTHOR_NAME_PATTERN" "$DEST/$NEW_NAME"
+            sed -i "$AUTHOR_EMAIL_PATTERN" "$DEST/$NEW_NAME"
           done
           rm -rf "$DEST/.template" "$DEST/.github/workflows/generate-template.yml"
 
