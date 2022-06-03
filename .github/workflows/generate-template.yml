@@ -21,7 +21,7 @@ jobs:
           IFS=$'\n'
           for entry in $(git ls-tree -r "${GITHUB_REF##*/}" --name-only); do
             NEW_NAME="$(echo $entry | \
-              sed "$MODULE_NAME_PATTERN" | sed "$PROJECT_NAME_PATTERN" \
+              sed "$MODULE_NAME_PATTERN" | sed "$PROJECT_NAME_PATTERN" | \
               sed "$AUTHOR_NAME_PATTERN" | sed "$AUTHOR_EMAIL_PATTERN")"
             mkdir -p "$(dirname "$DEST/$NEW_NAME")"
             cp -pn "$entry" "$DEST/$NEW_NAME"
