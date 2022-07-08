@@ -9,7 +9,7 @@ authors = [ "{{ cookiecutter.author_name }} <{{ cookiecutter.author_email }}>" ]
 python = "^3.9"
 
 [tool.poetry.dev-dependencies]
-black = "^22.3.0"
+black = "^22.6.0"
 isort = "^5.10.1"
 mypy = "^0.961"
 myst-parser = "^0.18.0"
