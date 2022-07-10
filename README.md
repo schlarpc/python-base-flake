@@ -30,6 +30,7 @@ You must have the following already installed to use this:
 - [Nix] with [flakes enabled]
 - [direnv] integrated into your shell
 - [cookiecutter] or [cruft]
+- [git] with name and email configured globally
 
 ## Getting started
 
@@ -46,6 +47,7 @@ $ cruft create https://github.com/schlarpc/python-base-flake --checkout template
 [dependabot]: https://github.com/dependabot
 [direnv]: https://direnv.net/
 [flakes enabled]: https://nixos.wiki/wiki/Flakes#Installing_flakes
+[git]: https://git-scm.com/
 [github actions]: https://github.com/features/actions
 [isort]: https://pycqa.github.io/isort/
 [mypy]: https://mypy.readthedocs.io/
