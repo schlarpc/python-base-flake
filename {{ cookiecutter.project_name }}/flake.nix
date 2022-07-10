@@ -105,7 +105,7 @@
         devShells.default = (
           (pkgs.poetry2nix.mkPoetryEnv (mkPoetryArgs // mkPoetryEnvEditableArgs)).env.overrideAttrs (
             oldAttrs: {
-              buildInputs = [ pkgs.act pkgs.poetry pkgs.poetry2nix.cli ] ++ pyProjectNixpkgsDevDeps;
+              buildInputs = [ pkgs.act projectConfig.python.pkgs.poetry pkgs.poetry2nix.cli ] ++ pyProjectNixpkgsDevDeps;
               shellHook = ''
                 ${checks.pre-commit-hooks.shellHook}
               '';
