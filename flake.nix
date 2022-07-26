@@ -21,16 +21,7 @@
       let
         projectConfig = {
           python = pkgs.python310;
-          dependencyOverrides = (final: prev: {
-            mypy = prev.mypy.overridePythonAttrs (old: {
-              patches = [
-                (pkgs.fetchpatch {
-                  url = "https://github.com/python/mypy/compare/a6166b2f..5b3c9888.patch";
-                  sha256 = "sha256-3QY99ctkIv9PoNfcTKF9TZFBwAIVOqPLKBVP6rDQ9FU=";
-                })
-              ];
-            });
-          });
+          dependencyOverrides = (final: prev: { });
         };
         pyProject = builtins.fromTOML (builtins.readFile (./. + "/pyproject.toml"));
         pkgs = import nixpkgs {
