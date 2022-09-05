@@ -26,6 +26,10 @@ $ poetry add some-package
 $ poetry update
 ```
 
+```shell
+$ poetryup
+```
+
 ### Testing and linting
 
 ```shell
