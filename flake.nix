@@ -21,7 +21,11 @@
       let
         projectConfig = {
           python = pkgs.python310;
-          dependencyOverrides = (final: prev: { });
+          dependencyOverrides = (final: prev: {
+            poetryup = prev.poetryup.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ final.poetry-core ];
+            });
+          });
         };
         pyProject = builtins.fromTOML (builtins.readFile (./. + "/pyproject.toml"));
         pkgs = import nixpkgs {

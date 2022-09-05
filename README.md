@@ -8,7 +8,7 @@ while staying reproducible and interoperable with the [Nix] ecosystem.
 
 - Reproducible builds with [Nix] and [poetry2nix]
 - Shell environment management with [direnv]
-- Python dependency management with [Poetry]
+- Python dependency management with [Poetry] and [PoetryUp]
 - Dependency management for anything else with [nixpkgs]
 - Unit testing with [pytest]
 - Type checking with [mypy]
@@ -57,6 +57,7 @@ $ cruft create https://github.com/schlarpc/python-base-flake --checkout template
 [nixpkgs-fmt]: https://github.com/nix-community/nixpkgs-fmt
 [nixpkgs]: https://github.com/NixOS/nixpkgs
 [poetry]: https://python-poetry.org/
+[poetryup]: https://github.com/MousaZeidBaker/poetryup
 [poetry2nix]: https://github.com/nix-community/poetry2nix
 [pre-commit-hooks.nix]: https://github.com/cachix/pre-commit-hooks.nix
 [pre-commit]: https://pre-commit.com/
