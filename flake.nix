@@ -22,9 +22,6 @@
         projectConfig = {
           python = pkgs.python311;
           dependencyOverrides = (final: prev: {
-            poetryup = prev.poetryup.overridePythonAttrs (old: {
-              buildInputs = (old.buildInputs or [ ]) ++ [ final.poetry-core ];
-            });
             sphinx = prev.sphinx.overridePythonAttrs (old: {
               buildInputs = (old.buildInputs or [ ]) ++ [ final.flit ];
             });
