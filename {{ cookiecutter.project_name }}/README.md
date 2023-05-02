@@ -27,7 +27,7 @@ $ poetry update
 ```
 
 ```shell
-$ poetryup
+$ poetry up --latest
 ```
 
 ### Testing and linting

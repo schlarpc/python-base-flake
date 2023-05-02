@@ -20,21 +20,24 @@
     flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-linux" ] (system:
       let
         projectConfig = {
-          python = pkgs.python310;
+          python = pkgs.python311;
           dependencyOverrides = (final: prev: {
-            poetryup = prev.poetryup.overridePythonAttrs (old: {
-              buildInputs = (old.buildInputs or [ ]) ++ [ final.poetry-core ];
+            sphinx = prev.sphinx.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ final.flit ];
             });
+            sphinx-autoapi = prev.sphinx-autoapi.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ final.setuptools ];
+            });
+            mypy = prev.mypy.override {
+              preferWheel = true;
+            };
           });
         };
+        inherit (poetry2nix.legacyPackages.${system}) mkPoetryApplication mkPoetryEnv defaultPoetryOverrides cleanPythonSources cli;
+        pkgs = nixpkgs.legacyPackages.${system};
         pyProject = builtins.fromTOML (builtins.readFile (./. + "/pyproject.toml"));
-        pkgs = import nixpkgs {
-          config = { };
-          system = system;
-          overlays = [ poetry2nix.overlay ];
-        };
         mkPoetryArgs = {
-          overrides = pkgs.poetry2nix.overrides.withDefaults projectConfig.dependencyOverrides;
+          overrides = [ projectConfig.dependencyOverrides defaultPoetryOverrides ];
           python = projectConfig.python;
           projectDir = ./.;
         };
@@ -42,6 +45,7 @@
         pyProjectNixpkgsDeps = nixpkgsAttrMap (pyProject.tool.nixpkgs.dependencies or [ ]);
         pyProjectNixpkgsDevDeps = pyProjectNixpkgsDeps ++ nixpkgsAttrMap (pyProject.tool.nixpkgs.dev-dependencies or [ ]);
         # HACK work around a bug in poetry2nix where the .egg-info is named incorrectly
+        # https://github.com/nix-community/poetry2nix/issues/616
         pkgInfoFields = {
           Metadata-Version = "2.1";
           Name = pyProject.tool.poetry.name;
@@ -86,7 +90,7 @@
       in
       rec {
         packages = {
-          default = (pkgs.poetry2nix.mkPoetryApplication mkPoetryArgs).overrideAttrs (old: {
+          default = (mkPoetryApplication mkPoetryArgs).overrideAttrs (old: {
             propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ pyProjectNixpkgsDeps;
           });
           containerImage = (pkgs.dockerTools.streamLayeredImage {
@@ -98,9 +102,13 @@
         };
         apps = pkgs.lib.mapAttrs (k: v: flake-utils.lib.mkApp { drv = v; }) packages;
         devShells.default = (
-          (pkgs.poetry2nix.mkPoetryEnv (mkPoetryArgs // mkPoetryEnvEditableArgs)).env.overrideAttrs (
+          (mkPoetryEnv (mkPoetryArgs // mkPoetryEnvEditableArgs)).env.overrideAttrs (
             oldAttrs: {
-              buildInputs = [ pkgs.act projectConfig.python.pkgs.poetry pkgs.poetry2nix.cli ] ++ pyProjectNixpkgsDevDeps;
+              buildInputs = [
+                pkgs.act
+                (pkgs.poetry.withPlugins (ps: with ps; [ poetry-plugin-up ]))
+                cli
+              ] ++ pyProjectNixpkgsDevDeps;
               shellHook = ''
                 ${checks.pre-commit-hooks.shellHook}
               '';
@@ -137,7 +145,7 @@
               mypy = {
                 enable = true;
                 name = "mypy";
-                entry = poetryPreCommit "mypy" ''mypy "$@"'';
+                entry = pkgs.lib.mkForce (poetryPreCommit "mypy" ''mypy "$@"'');
                 pass_filenames = false;
               };
               pytest = {
@@ -145,7 +153,7 @@
                 name = "pytest";
                 entry = poetryPreCommit "pytest" ''
                   # HACK force path to be in scope for flake evaluation
-                  # ${ pkgs.poetry2nix.cleanPythonSources { src = ./.; } + "/src" }
+                  # ${ cleanPythonSources { src = ./.; } + "/src" }
                   pytest "$@"
                 '';
                 pass_filenames = false;
