@@ -18,7 +18,7 @@ pytest-cov = "^4.0.0"
 Sphinx = "^6.2.1"
 sphinx-autoapi = "^2.1.0"
 tomli = "^2.0.1"
-cruft = {extras = ["pyproject"], version = "^2.14.0"}
+cruft = {extras = ["pyproject"], version = "^2.15.0"}
 
 [tool.poetry.scripts]
 {{ cookiecutter.project_name }} = "{{ cookiecutter.module_name }}._cli:main"
