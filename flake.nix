@@ -22,9 +22,6 @@
         projectConfig = {
           python = pkgs.python311;
           dependencyOverrides = (final: prev: {
-            sphinx = prev.sphinx.overridePythonAttrs (old: {
-              buildInputs = (old.buildInputs or [ ]) ++ [ final.flit ];
-            });
             sphinx-autoapi = prev.sphinx-autoapi.overridePythonAttrs (old: {
               buildInputs = (old.buildInputs or [ ]) ++ [ final.setuptools ];
             });
