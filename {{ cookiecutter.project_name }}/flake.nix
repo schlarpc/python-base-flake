@@ -98,20 +98,30 @@
           }).overrideAttrs (old: { passthru.exePath = ""; });
         };
         apps = pkgs.lib.mapAttrs (k: v: flake-utils.lib.mkApp { drv = v; }) packages;
-        devShells.default = (
-          (mkPoetryEnv (mkPoetryArgs // mkPoetryEnvEditableArgs)).env.overrideAttrs (
-            oldAttrs: {
-              buildInputs = [
-                pkgs.act
-                (pkgs.poetry.withPlugins (ps: with ps; [ poetry-plugin-up ]))
-                cli
-              ] ++ pyProjectNixpkgsDevDeps;
-              shellHook = ''
-                ${checks.pre-commit-hooks.shellHook}
-              '';
-            }
-          )
-        );
+        devShells =
+          let
+            baseShellPackages = [
+              pkgs.act
+              (pkgs.poetry.withPlugins (ps: with ps; [ poetry-plugin-up ]))
+              cli
+            ];
+          in
+          {
+            default = (
+              (mkPoetryEnv (mkPoetryArgs // mkPoetryEnvEditableArgs)).env.overrideAttrs (
+                oldAttrs: {
+                  buildInputs = baseShellPackages ++ pyProjectNixpkgsDevDeps;
+                  shellHook = ''
+                    ${checks.pre-commit-hooks.shellHook}
+                  '';
+                  "SHELL_LOADED_${builtins.hashString "sha256" envProjectDir}" = "1";
+                }
+              )
+            );
+            poetryFallback = pkgs.mkShell {
+              packages = baseShellPackages ++ [ projectConfig.python ];
+            };
+          };
         checks.pre-commit-hooks = pre-commit-hooks.lib.${pkgs.system}.run {
           src = ./.;
           hooks =
