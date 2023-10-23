@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.1.0
+      - uses: actions/checkout@v4.1.1
 
       - run: |
           PROJECT_NAME_PATTERN='s/python-base-flake/{{ cookiecutter.project_name }}/g'
