@@ -30,8 +30,8 @@
             };
           });
         };
-        inherit (poetry2nix.legacyPackages.${system}) mkPoetryApplication mkPoetryEnv defaultPoetryOverrides cleanPythonSources cli;
         pkgs = nixpkgs.legacyPackages.${system};
+        inherit (poetry2nix.lib.mkPoetry2Nix { pkgs = pkgs; }) mkPoetryApplication mkPoetryEnv defaultPoetryOverrides cleanPythonSources cli;
         pyProject = builtins.fromTOML (builtins.readFile (./. + "/pyproject.toml"));
         mkPoetryArgs = {
           overrides = [ projectConfig.dependencyOverrides defaultPoetryOverrides ];
