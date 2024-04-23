@@ -25,9 +25,6 @@
             sphinx-autoapi = prev.sphinx-autoapi.overridePythonAttrs (old: {
               buildInputs = (old.buildInputs or [ ]) ++ [ final.setuptools ];
             });
-            typer = prev.typer.overridePythonAttrs (old: {
-              buildInputs = (old.buildInputs or [ ]) ++ [ final.pdm-pep517 final.pdm-backend ];
-            });
             mypy = prev.mypy.override {
               preferWheel = true;
             };
