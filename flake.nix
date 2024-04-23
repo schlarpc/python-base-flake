@@ -8,7 +8,7 @@
       };
     };
     pre-commit-hooks = {
-      url = "github:cachix/pre-commit-hooks.nix";
+      url = "github:cachix/git-hooks.nix";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-utils.follows = "flake-utils";
@@ -24,6 +24,9 @@
           dependencyOverrides = (final: prev: {
             sphinx-autoapi = prev.sphinx-autoapi.overridePythonAttrs (old: {
               buildInputs = (old.buildInputs or [ ]) ++ [ final.setuptools ];
+            });
+            typer = prev.typer.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ final.pdm-pep517 final.pdm-backend ];
             });
             mypy = prev.mypy.override {
               preferWheel = true;
