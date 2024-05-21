@@ -1,5 +1,6 @@
 {
   inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs";
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
       inputs = {
@@ -11,7 +12,6 @@
       url = "github:cachix/git-hooks.nix";
       inputs = {
         nixpkgs.follows = "nixpkgs";
-        flake-utils.follows = "flake-utils";
       };
     };
   };
@@ -22,11 +22,8 @@
         projectConfig = {
           python = pkgs.python311;
           dependencyOverrides = (final: prev: {
-            sphinx-autoapi = prev.sphinx-autoapi.overridePythonAttrs (old: {
-              buildInputs = (old.buildInputs or [ ]) ++ [ final.setuptools ];
-            });
-            typer = prev.typer.overridePythonAttrs (old: {
-              buildInputs = (old.buildInputs or [ ]) ++ [ final.pdm-pep517 final.pdm-backend ];
+            docutils = prev.docutils.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
             });
             mypy = prev.mypy.override {
               preferWheel = true;
