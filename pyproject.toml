@@ -18,7 +18,7 @@ pytest-cov = "^6.0.0"
 Sphinx = "^8.1.3"
 sphinx-autoapi = "^3.3.2"
 tomli = "^2.2.1"
-cruft = {extras = ["pyproject"], version = "^2.15.0"}
+cruft = {extras = ["pyproject"], version = "^2.16.0"}
 
 [tool.poetry.scripts]
 python-base-flake = "python_base_flake._cli:main"
