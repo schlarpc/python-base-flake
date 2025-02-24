@@ -1004,26 +1004,23 @@ test = ["cython (>=3.0)", "defusedxml (>=0.7.1)", "pytest (>=8.0)", "setuptools 
 
 [[package]]
 name = "sphinx-autoapi"
-version = "3.3.2"
+version = "3.6.0"
 description = "Sphinx API documentation generator"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 files = [
-    {file = "sphinx_autoapi-3.3.2-py2.py3-none-any.whl", hash = "sha256:08afa656f7fcd45fe7dd64bf9f44698ddb8ca7c2d5cd0614c7455912ed580324"},
-    {file = "sphinx_autoapi-3.3.2.tar.gz", hash = "sha256:ebf8b44b2ebab5c28f0263ec6c2f8acdd156e9b2d539a58eca39d2f368445173"},
+    {file = "sphinx_autoapi-3.6.0-py3-none-any.whl", hash = "sha256:f3b66714493cab140b0e896d33ce7137654a16ac1edb6563edcbd47bf975f711"},
+    {file = "sphinx_autoapi-3.6.0.tar.gz", hash = "sha256:c685f274e41d0842ae7e199460c322c4bd7fec816ccc2da8d806094b4f64af06"},
 ]
 
 [package.dependencies]
 astroid = [
     {version = ">=2.7", markers = "python_version < \"3.12\""},
-    {version = ">=3.0.0a1", markers = "python_version >= \"3.12\""},
+    {version = ">=3", markers = "python_version >= \"3.12\""},
 ]
 Jinja2 = "*"
 PyYAML = "*"
-sphinx = ">=6.1.0"
-
-[package.extras]
-docs = ["furo", "sphinx", "sphinx-design"]
+sphinx = ">=7.4.0"
 
 [[package]]
 name = "sphinxcontrib-applehelp"
@@ -1230,4 +1227,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "47ef12d205c06897abe94371f0dec3c0a311120e2125038334e326fee8e0a4e2"
+content-hash = "2321dacc8939b086d10297b63f6f964e023d1edec3a4b5a5b5480b72fec0e5ce"
