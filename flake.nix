@@ -205,12 +205,13 @@
                 pass_filenames = false;
                 files = "^(src|docs)/";
               };
-              no-merge-rejects = rec {
+              # cruft produces these merge reject files when an automatic merge fails
+              check-no-merge-rejects = rec {
                 enable = true;
-                name = "no-merge-rejects";
+                name = "check-no-merge-rejects";
                 package = (
                   pkgs.writeShellApplication {
-                    name = "pre-commit-no-merge-rejects";
+                    name = "pre-commit-check-no-merge-rejects";
                     text = ''
                       for filename in "$@"; do
                         echo "Rejected merge file exists: $filename"
