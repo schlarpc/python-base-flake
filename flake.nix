@@ -97,7 +97,7 @@
                 ]
               );
         in
-        {
+        rec {
           packages = {
             default = (pythonSet.mkVirtualEnv "${projectName}-env" workspace.deps.default).overrideAttrs (old: {
               venvIgnoreCollisions = ignoreCollisions;
@@ -197,6 +197,9 @@
 
                 # Get repository root using git. This is expanded at runtime by the editable `.pth` machinery.
                 export REPO_ROOT=$(git rev-parse --show-toplevel)
+                
+                # Install pre-commit hooks
+                ${checks.git-hooks.shellHook}
               '';
             };
         };
