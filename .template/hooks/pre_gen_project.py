@@ -27,8 +27,7 @@ def main():
         value = json.loads(check["value"])
         if not re.match(check["pattern"], value):
             print(
-                f"ERROR: {value!r} is not a valid {check_name}, "
-                f"must match {check['pattern']!r}",
+                f"ERROR: {value!r} is not a valid {check_name}, must match {check['pattern']!r}",
                 file=sys.stderr,
             )
             sys.exit(1)
