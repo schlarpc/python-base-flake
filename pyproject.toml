@@ -6,6 +6,9 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [ ]
 
+[project.scripts]
+python-base-flake = "python_base_flake._cli:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -21,3 +24,34 @@ dev = [
     "sphinx>=8.2.3",
     "sphinx-autoapi>=3.6.0",
 ]
+
+[tool.coverage]
+html.directory = "docs/generated/coverage"
+report.show_missing = true
+run.source_pkgs = [ "python_base_flake" ]
+run.branch = true
+xml.output = "docs/generated/coverage/coverage.xml"
+
+[tool.cruft]
+skip = [ ".git", "tests" ]
+
+[tool.mypy]
+check_untyped_defs = true
+files = [ "src", "tests" ]
+ignore_missing_imports = true
+no_implicit_optional = true
+pretty = true
+show_error_codes = true
+warn_return_any = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+addopts = "--cov --cov-report html --cov-report xml"
+testpaths = [ "tests" ]
+
+[tool.ruff]
+line-length = 99
+src = [ "src", "tests" ]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true

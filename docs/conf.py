@@ -16,8 +16,10 @@ with (pathlib.Path(__file__).parent.parent / "pyproject.toml").open("rb") as f:
 project = pyproject["project"]["name"]
 version = pyproject["project"]["version"]
 if "authors" in pyproject["project"]:
-    author = ", ".join(author.get("name") or author["email"] for author in pyproject["project"]["authors"])
-    copyright = f'%Y, {author}'
+    author = ", ".join(
+        author.get("name") or author["email"] for author in pyproject["project"]["authors"]
+    )
+    copyright = f"%Y, {author}"
 
 autoapi_type = "python"
 autoapi_dirs = ["../src"]
