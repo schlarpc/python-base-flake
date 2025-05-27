@@ -245,13 +245,16 @@
             };
 
             shellHook = ''
-              # Undo some nixpkgs env vars
-              unset PYTHONPATH SOURCE_DATE_EPOCH
+              # Undo nixpkgs default dependency propagation
+              unset PYTHONPATH
+
+              # Undo nixpkgs default of reproducible timestamps, affects Sphinx docs
+              unset SOURCE_DATE_EPOCH
 
               # Get repository root using git. This is expanded at runtime by the editable `.pth` machinery.
-              export REPO_ROOT=$(git rev-parse --show-toplevel)
+              export REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-              # Install pre-commit hooks
+              # Install pre-commit hooks to be installed into git
               ${self.checks.${system}.git-hooks.shellHook}
             '';
           };
