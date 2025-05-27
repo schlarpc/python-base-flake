@@ -1,7 +1,6 @@
 [project]
 name = "python-base-flake"
 version = "0.3.0"
-description = "Python base flake using uv2nix"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [ ]
