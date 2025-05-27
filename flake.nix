@@ -1,190 +1,206 @@
 {
+  description = "Python base flake using uv2nix";
+
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs";
-    poetry2nix = {
-      url = "github:nix-community/poetry2nix";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        flake-utils.follows = "flake-utils";
-      };
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+    pyproject-nix = {
+      url = "github:pyproject-nix/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
-    pre-commit-hooks = {
-      url = "github:cachix/git-hooks.nix";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-      };
+
+    uv2nix = {
+      url = "github:pyproject-nix/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.uv2nix.follows = "uv2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nix2container = {
+      url = "github:nlewo/nix2container";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nix-std.url = "github:chessai/nix-std";
+
+    systems.url = "github:nix-systems/default";
   };
 
-  outputs = { self, nixpkgs, flake-utils, poetry2nix, pre-commit-hooks, ... }:
-    flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-linux" ] (system:
-      let
-        projectConfig = {
-          python = pkgs.python311;
-          dependencyOverrides = (final: prev: {
-            docutils = prev.docutils.overridePythonAttrs (old: {
-              buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
+  outputs =
+    {
+      self,
+      nixpkgs,
+      uv2nix,
+      pyproject-nix,
+      pyproject-build-systems,
+      nix2container,
+      nix-std,
+      systems,
+      ...
+    }:
+    let
+      inherit (nixpkgs) lib;
+
+      pyproject = pyproject-nix.lib.project.loadPyproject { projectRoot = ./.; };
+
+      projectName = pyproject.pyproject.project.name;
+      projectVersion = pyproject.pyproject.project.version;
+
+      workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
+
+      # packages from workspace
+      overlay = workspace.mkPyprojectOverlay {
+        sourcePreference = "wheel";
+      };
+
+      # build fixup overlay
+      pyprojectOverrides = _final: _prev: {
+        # Implement build fixups here.
+        # Note that uv2nix is _not_ using Nixpkgs buildPythonPackage.
+        # It's using https://pyproject-nix.github.io/pyproject.nix/build.html
+      };
+
+      # file collisions to ignore
+      ignoreCollisions = [ ];
+
+      eachSystem = lib.genAttrs (import systems);
+
+      perSystem =
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages."${system}";
+
+          python = pkgs.python3;
+
+          # full package set
+          pythonSet =
+            (pkgs.callPackage pyproject-nix.build.packages {
+              inherit python;
+            }).overrideScope
+              (
+                lib.composeManyExtensions [
+                  pyproject-build-systems.overlays.default
+                  overlay
+                  pyprojectOverrides
+                ]
+              );
+        in
+        {
+          packages = {
+            default = (pythonSet.mkVirtualEnv "${projectName}-env" workspace.deps.default).overrideAttrs (old: {
+              venvIgnoreCollisions = ignoreCollisions;
             });
-            mypy = prev.mypy.override {
-              preferWheel = true;
-            };
-          });
-        };
-        pkgs = nixpkgs.legacyPackages.${system};
-        inherit (poetry2nix.lib.mkPoetry2Nix { pkgs = pkgs; }) mkPoetryApplication mkPoetryEnv defaultPoetryOverrides cleanPythonSources cli;
-        pyProject = builtins.fromTOML (builtins.readFile (./. + "/pyproject.toml"));
-        mkPoetryArgs = {
-          overrides = [ projectConfig.dependencyOverrides defaultPoetryOverrides ];
-          python = projectConfig.python;
-          projectDir = ./.;
-        };
-        nixpkgsAttrMap = attrnames: builtins.map (p: pkgs.${p}) attrnames;
-        pyProjectNixpkgsDeps = nixpkgsAttrMap (pyProject.tool.nixpkgs.dependencies or [ ]);
-        pyProjectNixpkgsDevDeps = pyProjectNixpkgsDeps ++ nixpkgsAttrMap (pyProject.tool.nixpkgs.dev-dependencies or [ ]);
-        # HACK work around a bug in poetry2nix where the .egg-info is named incorrectly
-        # https://github.com/nix-community/poetry2nix/issues/616
-        pkgInfoFields = {
-          Metadata-Version = "2.1";
-          Name = pyProject.tool.poetry.name;
-          Version = pyProject.tool.poetry.version;
-          Summary = pyProject.tool.poetry.description;
-        };
-        pkgInfoFile = with pkgs.lib.generators; (
-          builtins.toFile "${pyProject.tool.poetry.name}-PKG-INFO"
-            (toKeyValue { mkKeyValue = mkKeyValueDefault { } ": "; } pkgInfoFields)
-        );
-        moduleNames = (
-          pkgs.lib.attrNames
-            (
-              pkgs.lib.filterAttrs
-                (n: v: v == "directory")
-                (builtins.readDir srcDir)
-            )
-        );
-        editableEggInfoFix = ps:
-          (ps.toPythonModule (
-            pkgs.runCommand "editable-egg-info-fix" { } ''
-              mkdir -p "$out/${ps.python.sitePackages}"
-              cd "$out/${ps.python.sitePackages}"
-              ${
-                pkgs.lib.concatMapStringsSep
-                "\n"
-                (pkg: (
-                    if (pkg != pyProject.tool.poetry.name)
-                    then ''mkdir "${pkg}.egg-info"; ln -s "${pkgInfoFile}" "${pkg}.egg-info/PKG-INFO"''
-                    else ""
-                ))
-                moduleNames
-              }
-            ''));
-        # use impure flake in direnv to get live editing for mkPoetryEnv
-        envProjectDir = builtins.getEnv "PROJECT_DIR";
-        srcDir = (if envProjectDir == "" then ./src else "${envProjectDir}/src");
-        mkPoetryEnvEditableArgs = {
-          editablePackageSources.${pyProject.tool.poetry.name} = srcDir;
-          extraPackages = (ps: [ (editableEggInfoFix ps) ]);
-        };
-      in
-      rec {
-        packages = {
-          default = (mkPoetryApplication mkPoetryArgs).overrideAttrs (old: {
-            propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ pyProjectNixpkgsDeps;
-          });
-          containerImage = (pkgs.dockerTools.streamLayeredImage {
-            name = pyProject.tool.poetry.name;
-            # add deps to contents so they can be invoked directly if needed (e.g. /bin/someprogram)
-            contents = [ packages.default ] ++ pyProjectNixpkgsDeps;
-            config.Cmd = [ "/bin/${pyProject.tool.poetry.name}" ];
-          }).overrideAttrs (old: { passthru.exePath = ""; });
-        };
-        apps = pkgs.lib.mapAttrs (k: v: flake-utils.lib.mkApp { drv = v; }) packages;
-        devShells =
-          let
-            baseShellPackages = [
-              pkgs.act
-              (pkgs.poetry.withPlugins (ps: with ps; [ poetry-plugin-up ]))
-              cli
-            ];
-          in
-          {
-            default = (
-              (mkPoetryEnv (mkPoetryArgs // mkPoetryEnvEditableArgs)).env.overrideAttrs (
-                oldAttrs: {
-                  buildInputs = baseShellPackages ++ pyProjectNixpkgsDevDeps;
-                  shellHook = ''
-                    ${checks.pre-commit-hooks.shellHook}
-                  '';
-                  "SHELL_LOADED_${builtins.hashString "sha256" envProjectDir}" = "1";
-                }
-              )
-            );
-            poetryFallback = pkgs.mkShell {
-              packages = baseShellPackages ++ [ projectConfig.python ];
-            };
+            container =
+              let
+                makeContainerTag =
+                  pkg:
+                  let
+                    parts = pkgs.lib.splitString "-" (pkgs.lib.last (pkgs.lib.splitString "/" pkg.outPath));
+                    hash = builtins.head parts;
+                    name = builtins.concatStringsSep "-" (builtins.tail parts);
+                  in
+                  "${projectName}-${projectVersion}-${hash}";
+              in (nix2container.packages.${system}.nix2container.buildImage {
+                name = self.packages.${system}.default.name;
+                tag = makeContainerTag self.packages.${system}.default;
+                config = {
+                  workingDir = self.packages.${system}.default;
+                };
+                maxLayers = 100;
+              });
+            nix-direnv = pkgs.nix-direnv;
           };
-        checks.pre-commit-hooks = pre-commit-hooks.lib.${pkgs.system}.run {
-          src = ./.;
-          hooks =
+
+          devShells.default =
             let
-              poetryPreCommit = name: text: (pkgs.writeShellApplication
-                {
-                  name = "pre-commit-${name}";
-                  runtimeInputs = with devShells.default; (nativeBuildInputs ++ buildInputs);
-                  text = text;
-                } + "/bin/pre-commit-${name}");
+              # Create an overlay enabling editable mode for all local dependencies.
+              editableOverlay = workspace.mkEditablePyprojectOverlay {
+                # Use environment variable
+                root = "$REPO_ROOT";
+              };
+
+              # Override previous set with our overrideable overlay.
+              editablePythonSet = pythonSet.overrideScope (
+                lib.composeManyExtensions [
+                  editableOverlay
+
+                  # Apply fixups for building an editable package of your workspace packages
+                  (final: prev: {
+                    "${projectName}" = prev."${projectName}".overrideAttrs (old: {
+                      # Modify the pyproject.toml so there's no dependency on a readme or any actual code
+                      src = pkgs.writeTextDir "pyproject.toml" (
+                        nix-std.lib.serde.toTOML (
+                          lib.recursiveUpdate pyproject.pyproject {
+                            project.readme = {
+                              content-type = "text/plain";
+                              text = "";
+                            };
+                            tool.hatch.build.targets.wheel.bypass-selection = true;
+                          }
+                        )
+                      );
+
+                      # Hatchling (our build system) has a dependency on the `editables` package when building editables.
+                      #
+                      # In normal Python flows this dependency is dynamically handled, and doesn't need to be explicitly declared.
+                      # This behaviour is documented in PEP-660.
+                      #
+                      # With Nix the dependency needs to be explicitly declared.
+                      nativeBuildInputs =
+                        old.nativeBuildInputs
+                        ++ final.resolveBuildSystem {
+                          editables = [ ];
+                        };
+                    });
+                  })
+                ]
+              );
+
+              # Build virtual environment, with local packages being editable.
+              #
+              # Enable all optional dependencies for development.
+              virtualenv =
+                (editablePythonSet.mkVirtualEnv "${projectName}-dev-env" workspace.deps.all).overrideAttrs
+                  (old: {
+                    venvIgnoreCollisions = ignoreCollisions;
+                  });
             in
-            {
-              shellcheck.enable = true;
-              black = {
-                enable = true;
-                entry = pkgs.lib.mkForce (poetryPreCommit "black" ''black "$@"'');
+            pkgs.mkShell {
+              packages = [
+                virtualenv
+                pkgs.uv
+                pkgs.nixfmt-rfc-style
+              ];
+
+              env = {
+                # Don't create venv using uv
+                UV_NO_SYNC = "1";
+
+                # Force uv to use Python interpreter from venv
+                UV_PYTHON = "${virtualenv}/bin/python";
+
+                # Prevent uv from downloading managed Python
+                UV_PYTHON_DOWNLOADS = "never";
               };
-              nixpkgs-fmt.enable = true;
-              prettier = {
-                enable = true;
-                types_or = [ "markdown" "json" "yaml" ];
-                excludes = [ "^\\.template/.+/\\.cruft\\.json$" ];
-              };
-              isort = {
-                enable = true;
-                entry = pkgs.lib.mkForce (poetryPreCommit "isort" ''isort "$@"'');
-              };
-              mypy = {
-                enable = true;
-                name = "mypy";
-                entry = pkgs.lib.mkForce (poetryPreCommit "mypy" ''mypy "$@"'');
-                pass_filenames = false;
-              };
-              pytest = {
-                enable = true;
-                name = "pytest";
-                entry = poetryPreCommit "pytest" ''
-                  # HACK force path to be in scope for flake evaluation
-                  # ${ cleanPythonSources { src = ./.; } + "/src" }
-                  pytest "$@"
-                '';
-                pass_filenames = false;
-              };
-              sphinx = {
-                enable = true;
-                name = "sphinx";
-                entry = poetryPreCommit "sphinx" "sphinx-build docs/ docs/generated/";
-                pass_filenames = false;
-              };
-              no-merge-rejects = {
-                enable = true;
-                name = "no-merge-rejects";
-                entry = poetryPreCommit "no-merge-rejects" ''
-                  for filename in "$@"; do
-                    echo "Rejected merge file exists: $filename"
-                  done
-                  exit 1
-                '';
-                files = "\\.rej$";
-              };
+
+              shellHook = ''
+                # Undo dependency propagation by nixpkgs.
+                unset PYTHONPATH
+
+                # Get repository root using git. This is expanded at runtime by the editable `.pth` machinery.
+                export REPO_ROOT=$(git rev-parse --show-toplevel)
+              '';
             };
         };
-      });
+    in
+    {
+      packages = eachSystem (system: (perSystem system).packages);
+      devShells = eachSystem (system: (perSystem system).devShells);
+    };
 }
-
-
