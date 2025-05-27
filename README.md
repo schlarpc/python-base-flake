@@ -64,5 +64,6 @@ $ cruft create https://github.com/schlarpc/python-base-flake --checkout template
 [ruff]: https://docs.astral.sh/ruff/
 [sphinx autoapi]: https://sphinx-autoapi.readthedocs.io/
 [sphinx]: https://www.sphinx-doc.org/
+[uv]: https://docs.astral.sh/uv/
 [uv2nix]: https://github.com/pyproject-nix/uv2nix
 [visual studio code]: https://code.visualstudio.com/
