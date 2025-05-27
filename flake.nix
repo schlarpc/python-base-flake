@@ -70,9 +70,6 @@
         # It's using https://pyproject-nix.github.io/pyproject.nix/build.html
       };
 
-      # file collisions to ignore
-      ignoreCollisions = [ ];
-
       eachSystem = lib.genAttrs (import systems);
 
       perSystem =
@@ -94,12 +91,55 @@
                   pyprojectOverrides
                 ]
               );
+
+          # Create an overlay enabling editable mode for all local dependencies.
+          editableOverlay = workspace.mkEditablePyprojectOverlay {
+            # Use environment variable
+            root = "$REPO_ROOT";
+          };
+
+          # Override previous set with our overrideable overlay.
+          editablePythonSet = pythonSet.overrideScope (
+            lib.composeManyExtensions [
+              editableOverlay
+
+              # Apply fixups for building an editable package of your workspace packages
+              (final: prev: {
+                "${projectName}" = prev."${projectName}".overrideAttrs (old: {
+                  # Hatchling (our build system) has a dependency on the `editables` package when building editables.
+                  #
+                  # In normal Python flows this dependency is dynamically handled, and doesn't need to be explicitly declared.
+                  # This behaviour is documented in PEP-660.
+                  #
+                  # With Nix the dependency needs to be explicitly declared.
+                  nativeBuildInputs =
+                    old.nativeBuildInputs
+                    ++ final.resolveBuildSystem {
+                      editables = [ ];
+                    };
+                });
+              })
+            ]
+          );
+
+          overrideCollisions =
+            env:
+            env.overrideAttrs (old: {
+              # file collisions to ignore
+              venvIgnoreCollisions = [ ];
+            });
+
+          venvRelease = overrideCollisions (
+            pythonSet.mkVirtualEnv "${projectName}-env" workspace.deps.default
+          );
+
+          venvDevelopment = overrideCollisions (
+            editablePythonSet.mkVirtualEnv "${projectName}-dev-env" workspace.deps.all
+          );
         in
         {
           packages = {
-            default = (pythonSet.mkVirtualEnv "${projectName}-env" workspace.deps.default).overrideAttrs (old: {
-              venvIgnoreCollisions = ignoreCollisions;
-            });
+            default = venvRelease;
             container =
               let
                 makeContainerTag =
@@ -122,84 +162,50 @@
             nix-direnv = pkgs.nix-direnv;
           };
 
-          checks = {
-            git-hooks = git-hooks.lib.${pkgs.system}.run {
-              src = ./.;
-              hooks = { };
+          checks.git-hooks = git-hooks.lib.${pkgs.system}.run {
+            src = ./.;
+            hooks = {
+              shellcheck.enable = true;
+              nixfmt-rfc-style.enable = true;
+              mypy = {
+                enable = true;
+                package = venvDevelopment;
+                pass_filenames = false;
+              };
+              ruff.enable = true;
+              ruff-format.enable = true;
             };
           };
 
-          devShells.default =
-            let
-              # Create an overlay enabling editable mode for all local dependencies.
-              editableOverlay = workspace.mkEditablePyprojectOverlay {
-                # Use environment variable
-                root = "$REPO_ROOT";
-              };
+          devShells.default = pkgs.mkShell {
+            packages = [
+              venvDevelopment
+              pkgs.uv
+              pkgs.act
+            ] ++ self.checks.${system}.git-hooks.enabledPackages;
 
-              # Override previous set with our overrideable overlay.
-              editablePythonSet = pythonSet.overrideScope (
-                lib.composeManyExtensions [
-                  editableOverlay
+            env = {
+              # Don't create venv using uv
+              UV_NO_SYNC = "1";
 
-                  # Apply fixups for building an editable package of your workspace packages
-                  (final: prev: {
-                    "${projectName}" = prev."${projectName}".overrideAttrs (old: {
-                      # Hatchling (our build system) has a dependency on the `editables` package when building editables.
-                      #
-                      # In normal Python flows this dependency is dynamically handled, and doesn't need to be explicitly declared.
-                      # This behaviour is documented in PEP-660.
-                      #
-                      # With Nix the dependency needs to be explicitly declared.
-                      nativeBuildInputs =
-                        old.nativeBuildInputs
-                        ++ final.resolveBuildSystem {
-                          editables = [ ];
-                        };
-                    });
-                  })
-                ]
-              );
+              # Force uv to use Python interpreter from venv
+              UV_PYTHON = "${venvDevelopment}/bin/python";
 
-              # Build virtual environment, with local packages being editable.
-              #
-              # Enable all optional dependencies for development.
-              virtualenv =
-                (editablePythonSet.mkVirtualEnv "${projectName}-dev-env" workspace.deps.all).overrideAttrs
-                  (old: {
-                    venvIgnoreCollisions = ignoreCollisions;
-                  });
-            in
-            pkgs.mkShell {
-              packages = [
-                virtualenv
-                pkgs.uv
-                pkgs.nixfmt-rfc-style
-                pkgs.act
-              ];
-
-              env = {
-                # Don't create venv using uv
-                UV_NO_SYNC = "1";
-
-                # Force uv to use Python interpreter from venv
-                UV_PYTHON = "${virtualenv}/bin/python";
-
-                # Prevent uv from downloading managed Python
-                UV_PYTHON_DOWNLOADS = "never";
-              };
-
-              shellHook = ''
-                # Undo some nixpkgs env vars
-                unset PYTHONPATH SOURCE_DATE_EPOCH
-
-                # Get repository root using git. This is expanded at runtime by the editable `.pth` machinery.
-                export REPO_ROOT=$(git rev-parse --show-toplevel)
-                
-                # Install pre-commit hooks
-                ${self.checks.${system}.git-hooks.shellHook}
-              '';
+              # Prevent uv from downloading managed Python
+              UV_PYTHON_DOWNLOADS = "never";
             };
+
+            shellHook = ''
+              # Undo some nixpkgs env vars
+              unset PYTHONPATH SOURCE_DATE_EPOCH
+
+              # Get repository root using git. This is expanded at runtime by the editable `.pth` machinery.
+              export REPO_ROOT=$(git rev-parse --show-toplevel)
+
+              # Install pre-commit hooks
+              ${self.checks.${system}.git-hooks.shellHook}
+            '';
+          };
         };
     in
     {
