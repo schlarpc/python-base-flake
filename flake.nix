@@ -194,6 +194,7 @@
                 package = venvDevelopment;
                 entry = "${package}/bin/pytest";
                 pass_filenames = false;
+                files = "^(src|tests)/";
               };
               sphinx = rec {
                 enable = true;
@@ -201,6 +202,7 @@
                 package = venvDevelopment;
                 entry = "${package}/bin/sphinx-build docs/ docs/generated/";
                 pass_filenames = false;
+                files = "^(src|docs)/";
               };
               no-merge-rejects = rec {
                 enable = true;
