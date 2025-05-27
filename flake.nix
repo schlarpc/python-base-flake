@@ -95,7 +95,7 @@
                 ]
               );
         in
-        rec {
+        {
           packages = {
             default = (pythonSet.mkVirtualEnv "${projectName}-env" workspace.deps.default).overrideAttrs (old: {
               venvIgnoreCollisions = ignoreCollisions;
@@ -197,7 +197,7 @@
                 export REPO_ROOT=$(git rev-parse --show-toplevel)
                 
                 # Install pre-commit hooks
-                ${checks.git-hooks.shellHook}
+                ${self.checks.${system}.git-hooks.shellHook}
               '';
             };
         };
@@ -205,5 +205,6 @@
     {
       packages = eachSystem (system: (perSystem system).packages);
       devShells = eachSystem (system: (perSystem system).devShells);
+      checks = eachSystem (system: (perSystem system).checks);
     };
 }
