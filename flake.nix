@@ -177,6 +177,7 @@
                 virtualenv
                 pkgs.uv
                 pkgs.nixfmt-rfc-style
+                pkgs.act
               ];
 
               env = {
