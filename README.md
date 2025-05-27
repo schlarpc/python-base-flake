@@ -7,7 +7,7 @@ while staying reproducible and interoperable with the [Nix] ecosystem.
 ## Features
 
 - Reproducible builds with [Nix] and [uv2nix]
-- Shell environment management with [direnv]
+- Shell environment management with [direnv] and [nix-direnv]
 - Python dependency management with [uv]
 - Dependency management for anything else with [nixpkgs]
 - Fast container builds with [nix2container]
@@ -54,6 +54,7 @@ $ cruft create https://github.com/schlarpc/python-base-flake --checkout template
 [mypy]: https://mypy.readthedocs.io/
 [napoleon]: https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
 [nix]: https://nixos.org/
+[nix-direnv]: https://github.com/nix-community/nix-direnv
 [nix2container]: https://github.com/nlewo/nix2container
 [nixfmt]: https://github.com/NixOS/nixfmt
 [nixpkgs]: https://github.com/NixOS/nixpkgs
