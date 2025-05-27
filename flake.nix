@@ -192,7 +192,7 @@
                 enable = true;
                 name = "pytest";
                 package = venvDevelopment;
-                entry = "${package}/bin/pytest";
+                entry = "${pkgs.bash}/bin/bash -c 'REPO_ROOT=\"\${REPO_ROOT:=$PWD}\" ${package}/bin/pytest'";
                 pass_filenames = false;
                 files = "^(src|tests)/";
               };
