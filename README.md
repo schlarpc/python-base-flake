@@ -31,7 +31,6 @@ You must have the following already installed to use this:
 - [Nix] with [flakes enabled]
 - [direnv] integrated into your shell
 - [cookiecutter] or [cruft]
-- [git] with name and email configured globally
 
 ## Getting started
 

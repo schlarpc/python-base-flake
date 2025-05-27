@@ -11,14 +11,6 @@ REGEX_CHECKS = {
         "value": r""" {{ cookiecutter.module_name | jsonify }} """,
         "pattern": r"^[A-Za-z_][A-Za-z0-9_]+$",
     },
-    "author_name": {
-        "value": r""" {{ cookiecutter.author_name | jsonify }} """,
-        "pattern": r"^.+$",
-    },
-    "author_email": {
-        "value": r""" {{ cookiecutter.author_email | jsonify }} """,
-        "pattern": r"^.+@.+$",
-    },
 }
 
 

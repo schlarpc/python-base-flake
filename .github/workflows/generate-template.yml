@@ -14,8 +14,6 @@ jobs:
       - run: |
           PROJECT_NAME_PATTERN='s/python-base-flake/{{ cookiecutter.project_name }}/g'
           MODULE_NAME_PATTERN='s/python_base_flake/{{ cookiecutter.module_name }}/g'
-          AUTHOR_NAME_PATTERN='s/Chaz Schlarp/{{ cookiecutter.author_name }}/g'
-          AUTHOR_EMAIL_PATTERN='s/schlarpc@gmail.com/{{ cookiecutter.author_email }}/g'
           DEST=".template/{{ cookiecutter.project_name }}"
           mkdir -p "$DEST"
           IFS=$'\n'
