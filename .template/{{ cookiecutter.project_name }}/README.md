@@ -19,15 +19,11 @@ $ direnv reload
 ### Maintaining Python dependencies
 
 ```shell
-$ poetry add some-package
+$ uv add some-package
 ```
 
 ```shell
-$ poetry update
-```
-
-```shell
-$ poetry up --latest
+$ uv sync --upgrade
 ```
 
 ### Testing and linting
@@ -43,7 +39,7 @@ $ nix run .
 ```
 
 ```shell
-$ nix run '.#containerImage' | docker load
+$ nix run '.#container.copyToDockerDaemon'
 ```
 
 ```shell
