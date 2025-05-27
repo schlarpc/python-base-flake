@@ -167,13 +167,58 @@
             hooks = {
               shellcheck.enable = true;
               nixfmt-rfc-style.enable = true;
+              prettier = {
+                enable = true;
+                types_or = [
+                  "markdown"
+                  "json"
+                  "yaml"
+                ];
+                excludes = [ "^\\.template/.+/\\.cruft\\.json$" ];
+              };
               mypy = {
                 enable = true;
                 package = venvDevelopment;
+              };
+              ruff = {
+                enable = true;
+                package = venvDevelopment;
+              };
+              ruff-format = {
+                enable = true;
+                package = venvDevelopment;
+              };
+              pytest = rec {
+                enable = true;
+                name = "pytest";
+                package = venvDevelopment;
+                entry = "${package}/bin/pytest";
                 pass_filenames = false;
               };
-              ruff.enable = true;
-              ruff-format.enable = true;
+              sphinx = rec {
+                enable = true;
+                name = "sphinx";
+                package = venvDevelopment;
+                entry = "${package}/bin/sphinx-build docs/ docs/generated/";
+                pass_filenames = false;
+              };
+              no-merge-rejects = rec {
+                enable = true;
+                name = "no-merge-rejects";
+                package = (
+                  pkgs.writeShellApplication {
+                    name = "pre-commit-no-merge-rejects";
+                    text = ''
+                      for filename in "$@"; do
+                        echo "Rejected merge file exists: $filename"
+                      done
+                      exit 1
+                    '';
+                  }
+                );
+                entry = "${package}/bin/${package.meta.mainProgram}";
+                files = "\\.rej$";
+              };
             };
           };
 
