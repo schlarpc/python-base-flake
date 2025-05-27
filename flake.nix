@@ -22,6 +22,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nix2container = {
       url = "github:nlewo/nix2container";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -106,7 +111,8 @@
                     name = builtins.concatStringsSep "-" (builtins.tail parts);
                   in
                   "${projectName}-${projectVersion}-${hash}";
-              in (nix2container.packages.${system}.nix2container.buildImage {
+              in
+              (nix2container.packages.${system}.nix2container.buildImage {
                 name = self.packages.${system}.default.name;
                 tag = makeContainerTag self.packages.${system}.default;
                 config = {
