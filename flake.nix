@@ -151,11 +151,13 @@
                   "${projectName}-${projectVersion}-${hash}";
               in
               (nix2container.packages.${system}.nix2container.buildImage {
-                name = self.packages.${system}.default.name;
+                name = projectName;
                 tag = makeContainerTag self.packages.${system}.default;
                 config = {
                   workingDir = self.packages.${system}.default;
+                  entrypoint = [ (pkgs.lib.getExe self.packages.${system}.default) ];
                 };
+                # gives a fair amount for one-package-per-layer but leaves some headroom from max of 127
                 maxLayers = 100;
               });
             nix-direnv = pkgs.nix-direnv;
