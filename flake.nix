@@ -42,6 +42,7 @@
       self,
       nixpkgs,
       uv2nix,
+      git-hooks,
       pyproject-nix,
       pyproject-build-systems,
       nix2container,
@@ -121,6 +122,13 @@
                 maxLayers = 100;
               });
             nix-direnv = pkgs.nix-direnv;
+          };
+
+          checks = {
+            git-hooks = git-hooks.lib.${pkgs.system}.run {
+              src = ./.;
+              hooks = { };
+            };
           };
 
           devShells.default =
