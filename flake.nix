@@ -1,6 +1,4 @@
 {
-  description = "Python base flake using uv2nix";
-
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
