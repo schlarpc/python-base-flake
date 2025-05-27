@@ -147,19 +147,6 @@
                   # Apply fixups for building an editable package of your workspace packages
                   (final: prev: {
                     "${projectName}" = prev."${projectName}".overrideAttrs (old: {
-                      # Modify the pyproject.toml so there's no dependency on a readme or any actual code
-                      src = pkgs.writeTextDir "pyproject.toml" (
-                        nix-std.lib.serde.toTOML (
-                          lib.recursiveUpdate pyproject.pyproject {
-                            project.readme = {
-                              content-type = "text/plain";
-                              text = "";
-                            };
-                            tool.hatch.build.targets.wheel.bypass-selection = true;
-                          }
-                        )
-                      );
-
                       # Hatchling (our build system) has a dependency on the `editables` package when building editables.
                       #
                       # In normal Python flows this dependency is dynamically handled, and doesn't need to be explicitly declared.
