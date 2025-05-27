@@ -92,16 +92,14 @@
                 ]
               );
 
-          # Create an overlay enabling editable mode for all local dependencies.
-          editableOverlay = workspace.mkEditablePyprojectOverlay {
-            # Use environment variable
-            root = "$REPO_ROOT";
-          };
-
-          # Override previous set with our overrideable overlay.
+          # Override previous set with an overlay to make the current package editable
           editablePythonSet = pythonSet.overrideScope (
             lib.composeManyExtensions [
-              editableOverlay
+              # Create an overlay enabling editable mode for all local dependencies.
+              (workspace.mkEditablePyprojectOverlay {
+                # Use environment variable that gets expanded in the .pth handler
+                root = "$REPO_ROOT";
+              })
 
               # Apply fixups for building an editable package of your workspace packages
               (final: prev: {
@@ -122,18 +120,18 @@
             ]
           );
 
-          overrideCollisions =
+          customizeVenv =
             env:
-            env.overrideAttrs (old: {
-              # file collisions to ignore
-              venvIgnoreCollisions = [ ];
-            });
+            pkgs.lib.addMetaAttrs { mainProgram = projectName; } (
+              env.overrideAttrs (old: {
+                # file collisions to ignore
+                venvIgnoreCollisions = [ ];
+              })
+            );
 
-          venvRelease = overrideCollisions (
-            pythonSet.mkVirtualEnv "${projectName}-env" workspace.deps.default
-          );
+          venvRelease = customizeVenv (pythonSet.mkVirtualEnv "${projectName}-env" workspace.deps.default);
 
-          venvDevelopment = overrideCollisions (
+          venvDevelopment = customizeVenv (
             editablePythonSet.mkVirtualEnv "${projectName}-dev-env" workspace.deps.all
           );
         in
