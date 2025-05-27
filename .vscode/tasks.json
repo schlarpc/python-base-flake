@@ -34,7 +34,7 @@
     {
       "label": "Update Python dependencies",
       "type": "shell",
-      "command": "poetry update",
+      "command": "uv sync --upgrade",
       "problemMatcher": []
     },
     {
