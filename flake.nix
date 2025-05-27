@@ -140,6 +140,7 @@
             default = venvRelease;
             container =
               let
+                # shuffle around the output path to make an easy-to-read container image tag
                 makeContainerTag =
                   pkg:
                   let
