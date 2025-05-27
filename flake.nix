@@ -196,8 +196,8 @@
               };
 
               shellHook = ''
-                # Undo dependency propagation by nixpkgs.
-                unset PYTHONPATH
+                # Undo some nixpkgs env vars
+                unset PYTHONPATH SOURCE_DATE_EPOCH
 
                 # Get repository root using git. This is expanded at runtime by the editable `.pth` machinery.
                 export REPO_ROOT=$(git rev-parse --show-toplevel)
