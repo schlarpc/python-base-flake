@@ -10,21 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.2.2
-
-      - run: |
-          PROJECT_NAME_PATTERN='s/python-base-flake/{{ cookiecutter.project_name }}/g'
-          MODULE_NAME_PATTERN='s/python_base_flake/{{ cookiecutter.module_name }}/g'
-          DEST=".template/{{ cookiecutter.project_name }}"
-          mkdir -p "$DEST"
-          IFS=$'\n'
-          for entry in $(git ls-tree -r "${GITHUB_REF##*/}" --name-only); do
-            NEW_NAME="$(echo $entry | sed "$MODULE_NAME_PATTERN;$PROJECT_NAME_PATTERN")"
-            mkdir -p "$(dirname "$DEST/$NEW_NAME")"
-            cp -pn "$entry" "$DEST/$NEW_NAME"
-            sed -i "$MODULE_NAME_PATTERN;$PROJECT_NAME_PATTERN" "$DEST/$NEW_NAME"
-          done
-          rm -rf "$DEST/.template" "$DEST/.github/workflows/generate-template.yml"
-
+      - run: .github/scripts/generate-template.sh
       - uses: s0/git-publish-subdir-action@v2.6.0
         env:
           REPO: self

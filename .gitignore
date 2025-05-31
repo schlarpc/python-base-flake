@@ -2,8 +2,16 @@
 /.hypothesis
 /.pytest_cache/
 /.pre-commit-config.yaml
-/result
 *.pyc
 __pycache__/
 .coverage
+
+# Nix build output
+/result
+
+# Sphinx build output
 /docs/generated/
+
+# python-base-flake template build output
+/.template/{{ cookiecutter.project_name }}/
+!/.template/{{ cookiecutter.project_name }}/README.md
