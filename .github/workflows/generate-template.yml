@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.2.2
-      - run: .github/scripts/generate-template.sh
+      - run: .github/workflows/generate-template.sh
       - uses: s0/git-publish-subdir-action@v2.6.0
         env:
           REPO: self
