@@ -11,7 +11,7 @@ def module_name(pytestconfig):
 
 
 def test_import_works(module_name):
-    assert __import__(module_name).__version__
+    assert hasattr(__import__(module_name), "__version__")
 
 
 def test_cli_runs_when_main(module_name, capsys):

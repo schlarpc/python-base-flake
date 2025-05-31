@@ -11,14 +11,6 @@ REGEX_CHECKS = {
         "value": r""" {{ cookiecutter.module_name | jsonify }} """,
         "pattern": r"^[A-Za-z_][A-Za-z0-9_]+$",
     },
-    "author_name": {
-        "value": r""" {{ cookiecutter.author_name | jsonify }} """,
-        "pattern": r"^.+$",
-    },
-    "author_email": {
-        "value": r""" {{ cookiecutter.author_email | jsonify }} """,
-        "pattern": r"^.+@.+$",
-    },
 }
 
 
@@ -27,8 +19,7 @@ def main():
         value = json.loads(check["value"])
         if not re.match(check["pattern"], value):
             print(
-                f"ERROR: {value!r} is not a valid {check_name}, "
-                f"must match {check['pattern']!r}",
+                f"ERROR: {value!r} is not a valid {check_name}, must match {check['pattern']!r}",
                 file=sys.stderr,
             )
             sys.exit(1)
