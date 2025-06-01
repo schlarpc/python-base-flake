@@ -1,12 +1,12 @@
 [project]
-name = "{{ cookiecutter.project_name }}"
+name = "{{cookiecutter.project_name}}"
 version = "0.3.0"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [ ]
 
 [project.scripts]
-{{ cookiecutter.project_name }} = "{{ cookiecutter.module_name }}._cli:main"
+{{cookiecutter.project_name}} = "{{cookiecutter.module_name}}._cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -27,7 +27,7 @@ dev = [
 [tool.coverage]
 html.directory = "docs/generated/coverage"
 report.show_missing = true
-run.source_pkgs = [ "{{ cookiecutter.module_name }}" ]
+run.source_pkgs = [ "{{cookiecutter.module_name}}" ]
 run.branch = true
 xml.output = "docs/generated/coverage/coverage.xml"
 

@@ -2,7 +2,7 @@
 
 ## Development
 
-This project uses [{{ cookiecutter.project_name }}](https://github.com/schlarpc/{{ cookiecutter.project_name }}) as its
+This project uses [python-base-flake](https://github.com/schlarpc/python-base-flake) as its
 foundation, providing a reproducible development environment with [Nix] and modern Python tooling.
 
 ### Setting up the development environment
@@ -120,7 +120,7 @@ $ nix flake update
 
 ## Keeping in sync with the base template
 
-This project was generated from [{{ cookiecutter.project_name }}] and can receive updates from the
+This project was generated from [python-base-flake] and can receive updates from the
 upstream template using [cruft]. This command will attempt to apply the latest template
 changes while preserving your project-specific modifications.
 
@@ -136,7 +136,7 @@ $ cruft update --checkout template
 [nixpkgs]: https://github.com/NixOS/nixpkgs
 [pre-commit]: https://pre-commit.com/
 [pytest]: https://docs.pytest.org/
-[{{ cookiecutter.project_name }}]: https://github.com/schlarpc/{{ cookiecutter.project_name }}
+[python-base-flake]: https://github.com/schlarpc/python-base-flake
 [ruff]: https://docs.astral.sh/ruff/
 [skopeo]: https://github.com/containers/skopeo
 [uv]: https://docs.astral.sh/uv/

@@ -459,7 +459,7 @@ wheels = [
 ]
 
 [[package]]
-name = "{{ cookiecutter.project_name }}"
+name = "{{cookiecutter.project_name}}"
 version = "0.3.0"
 source = { editable = "." }
 
