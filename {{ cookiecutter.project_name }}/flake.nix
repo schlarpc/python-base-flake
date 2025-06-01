@@ -258,11 +258,14 @@
               ${self.checks.${system}.git-hooks.shellHook}
             '';
           };
+
+          formatter = pkgs.nixfmt-tree;
         };
     in
     {
       packages = eachSystem (system: (perSystem system).packages);
       devShells = eachSystem (system: (perSystem system).devShells);
       checks = eachSystem (system: (perSystem system).checks);
+      formatter = eachSystem (system: (perSystem system).formatter);
     };
 }

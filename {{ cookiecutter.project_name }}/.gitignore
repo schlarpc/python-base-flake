@@ -13,5 +13,5 @@ __pycache__/
 /docs/generated/
 
 # {{ cookiecutter.project_name }} template build output
-/.template/{{ cookiecutter.project_name }}/
-!/.template/{{ cookiecutter.project_name }}/README.md
+/.template/\{\{ cookiecutter.project_name \}\}/**
+!/.template/\{\{ cookiecutter.project_name \}\}/README.md
