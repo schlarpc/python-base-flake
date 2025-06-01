@@ -30,8 +30,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nix-std.url = "github:chessai/nix-std";
-
     systems.url = "github:nix-systems/default";
   };
 
@@ -44,7 +42,6 @@
       pyproject-nix,
       pyproject-build-systems,
       nix2container,
-      nix-std,
       systems,
       ...
     }:
