@@ -6,8 +6,10 @@ PROJECT_NAME_PATTERN='s/python-base-flake/{{cookiecutter.project_name}}/g'
 MODULE_NAME_PATTERN='s/python_base_flake/{{cookiecutter.module_name}}/g'
 REPO="$(git rev-parse --show-toplevel)"
 DEST="$REPO/.template/{{cookiecutter.project_name}}"
-mkdir -p "$DEST"
-git clean -fXd -- "$DEST"
+mkdir --parents "$DEST"
+
+# Remove existing template generation output
+git clean --force --quiet -X -d -- "$DEST"
 
 if [[ -n "${GITHUB_REF-}" ]]; then
     # In Actions: strip refs/heads/ or refs/tags/ → branch|tag name
@@ -19,10 +21,12 @@ fi
 while IFS= read -r -d '' entry; do
     NEW_NAME="$(sed "$MODULE_NAME_PATTERN;$PROJECT_NAME_PATTERN" <<< "$entry")"
     ENTRY_DEST="$DEST/$NEW_NAME"
-    mkdir -p "$(dirname "$ENTRY_DEST")"
+    mkdir --parents "$(dirname "$ENTRY_DEST")"
     if [ ! -e "$ENTRY_DEST" ]; then
-        cp -pn -- "$entry" "$ENTRY_DEST"
-        sed -i "$MODULE_NAME_PATTERN;$PROJECT_NAME_PATTERN" "$DEST/$NEW_NAME"
+        cp --preserve=mode,ownership,timestamps --no-clobber -- "$entry" "$ENTRY_DEST"
+        sed --in-place "$MODULE_NAME_PATTERN;$PROJECT_NAME_PATTERN" "$DEST/$NEW_NAME"
     fi
 done < <("${FILE_CMD[@]}")
-rm -rf -- "$DEST/.template" "$DEST/.github/workflows/generate-template."{yml,sh}
+
+# Remove files only needed for template generation
+rm --recursive --force -- "$DEST/.template" "$DEST/.github/workflows/generate-template."{yml,sh}
