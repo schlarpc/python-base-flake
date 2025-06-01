@@ -5,6 +5,7 @@
 *.pyc
 __pycache__/
 .coverage
+/.claude
 
 # Nix build output
 /result
