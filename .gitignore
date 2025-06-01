@@ -13,5 +13,6 @@ __pycache__/
 /docs/generated/
 
 # python-base-flake template build output
-/.template/\{\{ cookiecutter.project_name \}\}/**
-!/.template/\{\{ cookiecutter.project_name \}\}/README.md
+/.template/\{\{cookiecutter.project_name\}\}/**
+!/.template/\{\{cookiecutter.project_name\}\}/README.md
+!/.template/\{\{cookiecutter.project_name\}\}/.cruft.json
