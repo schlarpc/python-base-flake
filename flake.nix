@@ -131,10 +131,15 @@
           venvDevelopment = customizeVenv (
             editablePythonSet.mkVirtualEnv "${projectName}-dev-env" workspace.deps.all
           );
+
+          application = (pkgs.callPackages pyproject-nix.build.util { }).mkApplication {
+            venv = venvRelease;
+            package = pythonSet."${projectName}";
+          };
         in
         {
           packages = {
-            default = venvRelease;
+            default = application;
             container =
               let
                 # shuffle around the output path to make an easy-to-read container image tag
