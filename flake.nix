@@ -117,25 +117,34 @@
             ]
           );
 
-          customizeVenv =
+          applyVirtualenvFixups =
             env:
-            pkgs.lib.addMetaAttrs { mainProgram = projectName; } (
-              env.overrideAttrs (old: {
-                # file collisions to ignore
-                venvIgnoreCollisions = [ ];
-              })
-            );
+            pkgs.lib.pipe env [
+              # ignore a configured list of colliding files (semi-common in namespace packages)
+              (
+                env:
+                env.overrideAttrs (old: {
+                  venvIgnoreCollisions = [ ];
+                })
+              )
+              # add a metadata element so that things like `nix run` point at the main script
+              (env: pkgs.lib.addMetaAttrs { mainProgram = projectName; } env)
+            ];
 
-          venvRelease = customizeVenv (pythonSet.mkVirtualEnv "${projectName}-env" workspace.deps.default);
+          venvRelease = applyVirtualenvFixups (
+            pythonSet.mkVirtualEnv "${projectName}-env" workspace.deps.default
+          );
 
-          venvDevelopment = customizeVenv (
+          venvDevelopment = applyVirtualenvFixups (
             editablePythonSet.mkVirtualEnv "${projectName}-dev-env" workspace.deps.all
           );
 
-          application = (pkgs.callPackages pyproject-nix.build.util { }).mkApplication {
-            venv = venvRelease;
-            package = pythonSet."${projectName}";
-          };
+          application = (
+            (pkgs.callPackages pyproject-nix.build.util { }).mkApplication {
+              venv = venvRelease;
+              package = pythonSet."${projectName}";
+            }
+          );
         in
         {
           packages = {
