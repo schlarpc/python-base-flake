@@ -48,35 +48,40 @@
     let
       inherit (nixpkgs) lib;
 
+      workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
       pyproject = pyproject-nix.lib.project.loadPyproject { projectRoot = ./.; };
-
       projectName = pyproject.pyproject.project.name;
       projectVersion = pyproject.pyproject.project.version;
 
-      workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
-
-      # packages from workspace
+      # Load Python dependencies from uv workspace into a package overlay.
       overlay = workspace.mkPyprojectOverlay {
+        # By default, we set the preference to `wheel`, letting most packages "just work".
+        # If you want to build everything from source, use `sdist`, but you will likely need
+        # to implement dependency fixups below.
         sourcePreference = "wheel";
       };
-
-      # build fixup overlay
-      pyprojectOverrides = _final: _prev: {
-        # Implement build fixups here.
-        # Note that uv2nix is _not_ using Nixpkgs buildPythonPackage.
-        # It's using https://pyproject-nix.github.io/pyproject.nix/build.html
-      };
-
-      eachSystem = lib.genAttrs (import systems);
 
       perSystem =
         system:
         let
           pkgs = nixpkgs.legacyPackages."${system}";
 
+          # By default, we use the current "stable" version of Python selected by `nixpkgs`.
           python = pkgs.python3;
 
-          # full package set
+          # This contains any build fixups needed for Python packages.
+          dependencyFixups = (
+            _final: _prev: {
+              # Implement project-specific build fixups for dependencies here.
+              # See https://pyproject-nix.github.io/uv2nix/patterns/patching-deps.html for details.
+              # Note that uv2nix is _not_ using Nixpkgs buildPythonPackage.
+              # It's using https://pyproject-nix.github.io/pyproject.nix/build.html
+              # If you need to build everything from sdists, you should consider reusing existing
+              # build system fixups, like https://github.com/TyberiusPrime/uv2nix_hammer_overrides
+            }
+          );
+
+          # Constuct complete Python package set based on workspace and overrides.
           pythonSet =
             (pkgs.callPackage pyproject-nix.build.packages {
               inherit python;
@@ -85,28 +90,24 @@
                 lib.composeManyExtensions [
                   pyproject-build-systems.overlays.default
                   overlay
-                  pyprojectOverrides
+                  dependencyFixups
                 ]
               );
 
-          # Override previous set with an overlay to make the current package editable
+          # Override previous Python set with an overlay to make the current package editable.
           editablePythonSet = pythonSet.overrideScope (
             lib.composeManyExtensions [
               # Create an overlay enabling editable mode for all local dependencies.
               (workspace.mkEditablePyprojectOverlay {
-                # Use environment variable that gets expanded in the .pth handler
+                # Use environment variable that gets expanded in the .pth handler;
+                # not during flake evaluation.
                 root = "$REPO_ROOT";
               })
-
-              # Apply fixups for building an editable package of your workspace packages
+              # Editable-mode build fixup for this package:
+              # `hatchling` (our build system) has a dependency on the `editables` package.
+              # Currently in uv2nix, build-system dependencies have to be explicitly modeled.
               (final: prev: {
                 "${projectName}" = prev."${projectName}".overrideAttrs (old: {
-                  # Hatchling (our build system) has a dependency on the `editables` package when building editables.
-                  #
-                  # In normal Python flows this dependency is dynamically handled, and doesn't need to be explicitly declared.
-                  # This behaviour is documented in PEP-660.
-                  #
-                  # With Nix the dependency needs to be explicitly declared.
                   nativeBuildInputs =
                     old.nativeBuildInputs
                     ++ final.resolveBuildSystem {
@@ -117,25 +118,38 @@
             ]
           );
 
-          customizeVenv =
+          # Apply any fixups that apply at the virtualenv level, not to specific packages.
+          applyVirtualenvFixups =
             env:
-            pkgs.lib.addMetaAttrs { mainProgram = projectName; } (
-              env.overrideAttrs (old: {
-                # file collisions to ignore
-                venvIgnoreCollisions = [ ];
-              })
-            );
+            lib.pipe env [
+              # Ignore a configured list of colliding files (semi-common in namespace packages)
+              (
+                env:
+                env.overrideAttrs (old: {
+                  venvIgnoreCollisions = [ ];
+                })
+              )
+              # Add a metadata element so that things like `nix run` point at the main script
+              (env: lib.addMetaAttrs { mainProgram = projectName; } env)
+            ];
 
-          venvRelease = customizeVenv (pythonSet.mkVirtualEnv "${projectName}-env" workspace.deps.default);
+          # Build the "release" virtualenv, used for `nix run` or container builds.
+          venvRelease = applyVirtualenvFixups (
+            pythonSet.mkVirtualEnv "${projectName}-env" workspace.deps.default
+          );
 
-          venvDevelopment = customizeVenv (
+          # Build the "development" virtualenv, used for `nix develop` and `direnv`.
+          venvDevelopment = applyVirtualenvFixups (
             editablePythonSet.mkVirtualEnv "${projectName}-dev-env" workspace.deps.all
           );
 
-          application = (pkgs.callPackages pyproject-nix.build.util { }).mkApplication {
-            venv = venvRelease;
-            package = pythonSet."${projectName}";
-          };
+          # Build an "application" that only exposes the application binaries.
+          application = (
+            (pkgs.callPackages pyproject-nix.build.util { }).mkApplication {
+              venv = venvRelease;
+              package = pythonSet."${projectName}";
+            }
+          );
         in
         {
           packages = {
@@ -146,7 +160,7 @@
                 makeContainerTag =
                   pkg:
                   let
-                    parts = pkgs.lib.splitString "-" (pkgs.lib.last (pkgs.lib.splitString "/" pkg.outPath));
+                    parts = lib.splitString "-" (lib.last (lib.splitString "/" pkg.outPath));
                     hash = builtins.head parts;
                     name = builtins.concatStringsSep "-" (builtins.tail parts);
                   in
@@ -157,7 +171,7 @@
                 tag = makeContainerTag self.packages.${system}.default;
                 config = {
                   workingDir = self.packages.${system}.default;
-                  entrypoint = [ (pkgs.lib.getExe self.packages.${system}.default) ];
+                  entrypoint = [ (lib.getExe self.packages.${system}.default) ];
                 };
                 # gives a fair amount for one-package-per-layer but leaves some headroom from max of 127
                 maxLayers = 100;
@@ -263,6 +277,8 @@
 
           formatter = pkgs.nixfmt-tree;
         };
+
+      eachSystem = lib.genAttrs (import systems);
     in
     {
       packages = eachSystem (system: (perSystem system).packages);
