@@ -279,11 +279,14 @@
         };
 
       eachSystem = lib.genAttrs (import systems);
+      applySystemToAttrs =
+        attrNames: lib.genAttrs attrNames (attrName: eachSystem (system: (perSystem system)."${attrName}"));
+      flakeOutput = applySystemToAttrs [
+        "packages"
+        "devShells"
+        "checks"
+        "formatter"
+      ];
     in
-    {
-      packages = eachSystem (system: (perSystem system).packages);
-      devShells = eachSystem (system: (perSystem system).devShells);
-      checks = eachSystem (system: (perSystem system).checks);
-      formatter = eachSystem (system: (perSystem system).formatter);
-    };
+    flakeOutput;
 }
