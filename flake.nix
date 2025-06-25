@@ -176,7 +176,6 @@
                 # gives a fair amount for one-package-per-layer but leaves some headroom from max of 127
                 maxLayers = 100;
               });
-            nix-direnv = pkgs.nix-direnv;
           };
 
           checks.git-hooks = git-hooks.lib.${pkgs.system}.run {
