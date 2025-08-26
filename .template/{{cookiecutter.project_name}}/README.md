@@ -17,10 +17,12 @@ $ direnv allow
 
 Once the environment is loaded, you can run the project directly using its command-line interface.
 The package is installed in editable mode, so changes to the source code in `src/` are immediately
-reflected without rebuilding.
+reflected without rebuilding. Additionally, `PYTHONPATH` is set automatically, so you can interact
+with the module naturally using the Python executable.
 
 ```shell
 $ {{ cookiecutter.project_name }}
+$ python -m {{ cookiecutter.project_name }}
 ```
 
 ### Managing Python dependencies
