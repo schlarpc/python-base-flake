@@ -246,7 +246,8 @@
               venvDevelopment
               pkgs.uv
               pkgs.act
-            ] ++ self.checks.${system}.git-hooks.enabledPackages;
+            ]
+            ++ self.checks.${system}.git-hooks.enabledPackages;
 
             env = {
               # Don't create venv using uv
