@@ -1,3 +1,4 @@
 /\{\{cookiecutter.project_name\}\}/**
 !/\{\{cookiecutter.project_name\}\}/README.md
+!/\{\{cookiecutter.project_name\}\}/CLAUDE.md
 !/\{\{cookiecutter.project_name\}\}/.cruft.json
