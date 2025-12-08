@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
       - run: .github/workflows/generate-template.sh
       - uses: s0/git-publish-subdir-action@v2.6.0
         env:
