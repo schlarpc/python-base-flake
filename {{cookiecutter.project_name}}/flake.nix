@@ -178,11 +178,11 @@
               });
           };
 
-          checks.git-hooks = git-hooks.lib.${pkgs.system}.run {
+          checks.git-hooks = git-hooks.lib.${system}.run {
             src = ./.;
             hooks = {
               shellcheck.enable = true;
-              nixfmt-rfc-style.enable = true;
+              nixfmt.enable = true;
               prettier = {
                 enable = true;
                 types_or = [
