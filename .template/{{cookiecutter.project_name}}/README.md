@@ -120,6 +120,29 @@ includes [nixpkgs], [uv2nix], and other flake inputs.
 $ nix flake update
 ```
 
+## Project layout
+
+This flake supports several [uv] project layouts out of the box. No changes to `flake.nix`
+are needed when adding workspace members.
+
+**Single package** — A standalone project with a `[project]` and `[build-system]` in the root
+`pyproject.toml`. This is the default layout created by `uv init --package`. `nix build` produces
+an application binary, and `nix run .#container.copyToDockerDaemon` builds a container image.
+See [Creating projects][uv-init] in the uv docs.
+
+**Workspace with a root package** — A root `pyproject.toml` that has both a `[project]` section
+and a `[tool.uv.workspace]` table, with additional packages as [workspace members][uv-workspaces].
+Each member is exposed as `nix build .#<member-name>` and `nix run .#<member-name>-container.copyToDockerDaemon`.
+The root package is also available as `nix build` (the default).
+
+**Virtual workspace** — A root `pyproject.toml` with `[tool.uv.workspace]` but _no_ `[project]`
+section. The root is not itself a package; it only defines the workspace. There is no default
+`nix build` target — use `nix build .#<member-name>` to build a specific member. See
+[Workspaces][uv-workspaces] in the uv docs.
+
+In all layouts, `nix develop` (or [direnv]) provides a development shell with all workspace
+members installed in editable mode.
+
 ## Keeping in sync with the base template
 
 This project was generated from [python-base-flake] and can receive updates from the
@@ -142,4 +165,6 @@ $ cruft update --checkout template
 [ruff]: https://docs.astral.sh/ruff/
 [skopeo]: https://github.com/containers/skopeo
 [uv]: https://docs.astral.sh/uv/
+[uv-init]: https://docs.astral.sh/uv/concepts/projects/init/
+[uv-workspaces]: https://docs.astral.sh/uv/concepts/projects/workspaces/
 [uv2nix]: https://github.com/pyproject-nix/uv2nix

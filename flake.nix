@@ -49,18 +49,29 @@
       inherit (nixpkgs) lib;
 
       workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
-      pyproject = pyproject-nix.lib.project.loadPyproject { projectRoot = ./.; };
-      projectName = pyproject.pyproject.project.name;
-      projectVersion = pyproject.pyproject.project.version;
+
+      pyprojectToml = lib.importTOML ./pyproject.toml;
+      hasRootProject = pyprojectToml ? project.name;
+
+      projectName =
+        if hasRootProject then
+          pyprojectToml.project.name
+        else
+          lib.warn "No [project] section in pyproject.toml — using \"workspace\" as project name for venv naming." "workspace";
+
+      projectVersion =
+        if pyprojectToml ? project.version then
+          pyprojectToml.project.version
+        else
+          self.shortRev or self.dirtyShortRev or "unknown";
 
       # Combine requires-python constraints from uv.lock and pyproject.toml so that
       # interpreter selection stays correct even when uv.lock is stale.
       # For workspace roots without a [project] section, only the uv.lock constraint applies.
-      rawPyproject = lib.importTOML ./pyproject.toml;
       effectiveRequiresPython =
         workspace.requires-python
-        ++ lib.optionals (rawPyproject ? project.requires-python) (
-          pyproject-nix.lib.pep440.parseVersionConds rawPyproject.project.requires-python
+        ++ lib.optionals (pyprojectToml ? project.requires-python) (
+          pyproject-nix.lib.pep440.parseVersionConds pyprojectToml.project.requires-python
         );
 
       # Load Python dependencies from uv workspace into a package overlay.
@@ -87,7 +98,7 @@
             else
               let
                 uvLockConstraint = (lib.importTOML ./uv.lock)."requires-python" or "(not set)";
-                pyprojectConstraint = rawPyproject.project.requires-python or "(not set)";
+                pyprojectConstraint = pyprojectToml.project.requires-python or "(not set)";
               in
               throw ''
                 No Python interpreter in the flake's nixpkgs satisfies the requires-python constraints.
@@ -132,18 +143,22 @@
                 # not during flake evaluation.
                 root = "$REPO_ROOT";
               })
-              # Editable-mode build fixup for this package:
-              # `hatchling` (our build system) has a dependency on the `editables` package.
+              # Editable-mode build fixup for workspace packages:
+              # Build systems (e.g. `hatchling`) have a dependency on the `editables` package.
               # Currently in uv2nix, build-system dependencies have to be explicitly modeled.
-              (final: prev: {
-                "${projectName}" = prev."${projectName}".overrideAttrs (old: {
-                  nativeBuildInputs =
-                    old.nativeBuildInputs
-                    ++ final.resolveBuildSystem {
-                      editables = [ ];
-                    };
-                });
-              })
+              (
+                final: prev:
+                lib.mapAttrs (
+                  name: _:
+                  prev.${name}.overrideAttrs (old: {
+                    nativeBuildInputs =
+                      old.nativeBuildInputs
+                      ++ final.resolveBuildSystem {
+                        editables = [ ];
+                      };
+                  })
+                ) workspace.deps.default
+              )
             ]
           );
 
@@ -172,40 +187,49 @@
             editablePythonSet.mkVirtualEnv "${projectName}-dev-env" workspace.deps.all
           );
 
-          # Build an "application" that only exposes the application binaries.
-          application = (
+          # Build an "application" per workspace member that only exposes application binaries.
+          memberApplications = lib.mapAttrs (
+            name: _:
             (pkgs.callPackages pyproject-nix.build.util { }).mkApplication {
               venv = venvRelease;
-              package = pythonSet."${projectName}";
+              package = pythonSet.${name};
             }
-          );
+          ) workspace.deps.default;
+
+          # Build a container image per workspace member.
+          makeContainerTag =
+            name: pkg:
+            let
+              parts = lib.splitString "-" (lib.last (lib.splitString "/" pkg.outPath));
+              hash = builtins.head parts;
+            in
+            "${name}-${projectVersion}-${hash}";
+
+          memberContainers = lib.mapAttrs (
+            name: app:
+            nix2container.packages.${system}.nix2container.buildImage {
+              inherit name;
+              tag = makeContainerTag name app;
+              config = {
+                workingDir = app;
+                entrypoint = [ (lib.getExe app) ];
+              };
+              # gives a fair amount for one-package-per-layer but leaves some headroom from max of 127
+              maxLayers = 100;
+            }
+          ) memberApplications;
         in
         {
-          packages = {
-            default = application;
-            container =
-              let
-                # shuffle around the output path to make an easy-to-read container image tag
-                makeContainerTag =
-                  pkg:
-                  let
-                    parts = lib.splitString "-" (lib.last (lib.splitString "/" pkg.outPath));
-                    hash = builtins.head parts;
-                    name = builtins.concatStringsSep "-" (builtins.tail parts);
-                  in
-                  "${projectName}-${projectVersion}-${hash}";
-              in
-              (nix2container.packages.${system}.nix2container.buildImage {
-                name = projectName;
-                tag = makeContainerTag self.packages.${system}.default;
-                config = {
-                  workingDir = self.packages.${system}.default;
-                  entrypoint = [ (lib.getExe self.packages.${system}.default) ];
-                };
-                # gives a fair amount for one-package-per-layer but leaves some headroom from max of 127
-                maxLayers = 100;
-              });
-          };
+          packages =
+            memberApplications
+            // lib.mapAttrs' (name: value: {
+              name = "${name}-container";
+              inherit value;
+            }) memberContainers
+            // lib.optionalAttrs hasRootProject {
+              default = memberApplications.${projectName};
+              container = memberContainers.${projectName};
+            };
 
           checks.git-hooks = git-hooks.lib.${system}.run {
             src = ./.;
