@@ -53,6 +53,16 @@
       projectName = pyproject.pyproject.project.name;
       projectVersion = pyproject.pyproject.project.version;
 
+      # Combine requires-python constraints from uv.lock and pyproject.toml so that
+      # interpreter selection stays correct even when uv.lock is stale.
+      # For workspace roots without a [project] section, only the uv.lock constraint applies.
+      rawPyproject = lib.importTOML ./pyproject.toml;
+      effectiveRequiresPython =
+        workspace.requires-python
+        ++ lib.optionals (rawPyproject ? project.requires-python) (
+          pyproject-nix.lib.pep440.parseVersionConds rawPyproject.project.requires-python
+        );
+
       # Load Python dependencies from uv workspace into a package overlay.
       overlay = workspace.mkPyprojectOverlay {
         # By default, we set the preference to `wheel`, letting most packages "just work".
@@ -66,8 +76,27 @@
         let
           pkgs = nixpkgs.legacyPackages."${system}";
 
-          # By default, we use the current "stable" version of Python selected by `nixpkgs`.
-          python = pkgs.python3;
+          # Select the lowest Python interpreter version that satisfies the combined constraints.
+          matchingInterpreters = pyproject-nix.lib.util.filterPythonInterpreters {
+            requires-python = effectiveRequiresPython;
+            inherit (pkgs) pythonInterpreters;
+          };
+          python =
+            if matchingInterpreters != [ ] then
+              lib.head matchingInterpreters
+            else
+              let
+                uvLockConstraint = (lib.importTOML ./uv.lock)."requires-python" or "(not set)";
+                pyprojectConstraint = rawPyproject.project.requires-python or "(not set)";
+              in
+              throw ''
+                No Python interpreter in the flake's nixpkgs satisfies the requires-python constraints.
+                  pyproject.toml: ${pyprojectConstraint}
+                  uv.lock:        ${uvLockConstraint}
+                If these constraints conflict, run `uv lock` to update the lockfile.
+                If both look correct, try `nix flake update nixpkgs` to get newer Python versions.
+                If uv lock fails due to a stale dev shell, try `rm uv.lock && uv lock` as a last resort.
+              '';
 
           # This contains any build fixups needed for Python packages.
           dependencyFixups = (
