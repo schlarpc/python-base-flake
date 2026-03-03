@@ -1,13 +1,15 @@
 name: Generate template
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Test"]
+    types: [completed]
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@v6.0.2
       - run: .github/workflows/generate-template.sh
