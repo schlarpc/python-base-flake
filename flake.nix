@@ -329,7 +329,33 @@
             '';
           };
 
-          formatter = pkgs.nixfmt-tree;
+          formatter = pkgs.nixfmt-tree.override {
+            runtimeInputs = [
+              venvDevelopment
+              pkgs.prettier
+            ];
+            settings.formatter = {
+              ruff-format = {
+                command = "ruff";
+                options = [ "format" ];
+                includes = [
+                  "*.py"
+                  "*.pyi"
+                ];
+              };
+              prettier = {
+                command = "prettier";
+                options = [ "--write" ];
+                includes = [
+                  "*.md"
+                  "*.json"
+                  "*.yaml"
+                  "*.yml"
+                ];
+                excludes = [ ".template/*/.cruft.json" ];
+              };
+            };
+          };
         };
 
       eachSystem = lib.genAttrs (import systems);
