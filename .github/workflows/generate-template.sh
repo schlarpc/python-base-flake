@@ -30,3 +30,6 @@ done < <("${FILE_CMD[@]}")
 
 # Remove files only needed for template generation
 rm --recursive --force -- "$DEST/.template" "$DEST/.github/workflows/generate-template."{yml,sh}
+
+# Normalize version so generated projects don't inherit the template repo's version
+sed --in-place 's/^version = ".*"/version = "0.1.0"/' "$DEST/pyproject.toml"
