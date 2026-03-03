@@ -324,7 +324,7 @@
               # Get repository root using git. This is expanded at runtime by the editable `.pth` machinery.
               export REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-              # Install pre-commit hooks to be installed into git
+              # Install git hooks
               ${self.checks.${system}.git-hooks.shellHook}
             '';
           };

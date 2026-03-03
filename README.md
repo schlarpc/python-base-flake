@@ -17,7 +17,7 @@ while staying reproducible and interoperable with the [Nix] ecosystem.
 - Code coverage with [Coverage.py]
 - Documentation with [Sphinx] and [MyST]
 - Automatic API documentation with [Sphinx AutoAPI] and [napoleon]
-- Linting enforcement with [pre-commit] and [git-hooks.nix]
+- Linting enforcement with [prek] and [git-hooks.nix]
 - Template updates with [cruft]
 - Package updates with [Dependabot]
 - Continuous integration with [GitHub Actions]
@@ -58,7 +58,7 @@ $ cruft create https://github.com/schlarpc/python-base-flake --checkout template
 [nixfmt]: https://github.com/NixOS/nixfmt
 [nixpkgs]: https://github.com/NixOS/nixpkgs
 [poetry2nix]: https://github.com/nix-community/poetry2nix
-[pre-commit]: https://pre-commit.com/
+[prek]: https://github.com/jdx/prek
 [prettier]: https://prettier.io/
 [pytest]: https://docs.pytest.org/
 [ruff]: https://docs.astral.sh/ruff/

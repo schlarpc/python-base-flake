@@ -24,12 +24,12 @@ This is a Python project using Nix flakes and modern Python tooling. Use these c
 - `ruff check` - Lint Python code for style issues and bugs
 - `ruff format` - Format Python code automatically
 - `mypy` - Perform static type checking
-- `pre-commit run --all` - Run all code quality checks
+- `prek run --all-files` - Run all code quality checks
 
 ### Nix Commands
 
 - `nix run` - Build and run the application with Nix
-- `nix flake check` - Run all flake checks (tests, pre-commit, build verification)
+- `nix flake check` - Run all flake checks (tests, linting, build verification)
 - `nix flake update` - Update Nix dependencies
 - `nix run .#container.copyToDockerDaemon` - Build container image
 - `nix run .#container.copyTo -- docker-daemon:{{cookiecutter.project_name}}:latest` - Copy container using Skopeo
@@ -53,13 +53,13 @@ This project is built from the [python-base-flake](https://github.com/schlarpc/p
 - **ruff**: Fast Python linting and formatting
 - **mypy**: Static type checking
 - **pytest**: Testing framework with coverage reporting
-- **pre-commit**: Git hooks for code quality enforcement
+- **prek**: Git hooks for code quality enforcement
 - **Sphinx**: Documentation generation
 - **nix2container**: Efficient container image building
 
 ### Development Workflow
 
-The project uses direnv for automatic environment loading and pre-commit hooks for code quality. All Python packages are managed through uv and built using Nix's reproducible build system. The CLI is a simple application that can be extended by modifying `_cli.py:main()`.
+The project uses direnv for automatic environment loading and git hooks (via prek) for code quality. All Python packages are managed through uv and built using Nix's reproducible build system. The CLI is a simple application that can be extended by modifying `_cli.py:main()`.
 
 ### Container Support
 

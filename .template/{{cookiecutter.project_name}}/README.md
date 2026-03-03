@@ -44,12 +44,12 @@ $ uv sync --upgrade
 
 ### Running tests and code quality checks
 
-The project uses [pre-commit] to enforce code quality standards. While pre-commit hooks run
+The project uses [prek] to enforce code quality standards. While hooks run
 automatically on git commits, you can manually run all checks against the entire codebase
 at any time.
 
 ```shell
-$ pre-commit run --all
+$ prek run --all-files
 ```
 
 You can also run individual tools directly:
@@ -104,7 +104,7 @@ $ nix run .#container.copyTo -- docker-daemon:{{ cookiecutter.project_name }}:la
 
 #### Running quality checks
 
-To run all flake checks including pre-commit rules, tests, and build verification,
+To run all flake checks including linting, tests, and build verification,
 use the check command. This is automatically run on GitHub pushes and pull requests.
 
 ```shell
@@ -159,7 +159,7 @@ $ cruft update --checkout template
 [nix]: https://nixos.org/
 [nix2container]: https://github.com/nlewo/nix2container
 [nixpkgs]: https://github.com/NixOS/nixpkgs
-[pre-commit]: https://pre-commit.com/
+[prek]: https://github.com/jdx/prek
 [pytest]: https://docs.pytest.org/
 [python-base-flake]: https://github.com/schlarpc/python-base-flake
 [ruff]: https://docs.astral.sh/ruff/

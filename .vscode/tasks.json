@@ -14,7 +14,7 @@
     {
       "label": "Run all pre-commit checks",
       "type": "shell",
-      "command": "pre-commit run --all-files",
+      "command": "prek run --all-files",
       "problemMatcher": [],
       "group": {
         "kind": "test",
