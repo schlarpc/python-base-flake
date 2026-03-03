@@ -33,6 +33,7 @@ This is a Python project using Nix flakes and modern Python tooling. Use these c
 - `nix flake update` - Update Nix dependencies
 - `nix run .#container.copyToDockerDaemon` - Build container image
 - `nix run .#container.copyTo -- docker-daemon:{{cookiecutter.project_name}}:latest` - Copy container using Skopeo
+- `nix eval .#overlays.default --apply 'f: builtins.typeOf f'` - Verify the library overlay is a function
 
 ## Architecture
 
@@ -60,6 +61,10 @@ This project is built from the [python-base-flake](https://github.com/schlarpc/p
 ### Development Workflow
 
 The project uses direnv for automatic environment loading and git hooks (via prek) for code quality. All Python packages are managed through uv and built using Nix's reproducible build system. The CLI is a simple application that can be extended by modifying `_cli.py:main()`.
+
+### Library Overlay
+
+The flake exports `overlays.default`, an overlay for the uv2nix/pyproject.nix Python package set (not a nixpkgs overlay — the build machinery differs from `buildPythonPackage`). It contains only workspace member packages (not transitive `uv.lock` dependencies). Downstream uv2nix-based projects can compose this overlay into their own Python package set via `lib.composeManyExtensions` to consume workspace members as library dependencies. Note that uv and Nix resolve dependencies separately — the consumer must declare the library in both places: as a flake input (for Nix) and as a uv source such as a `[tool.uv.sources]` git entry (for `uv add` / `uv lock`). The library overlay should be composed last so it overrides the uv source entry with the flake input's Nix derivation.
 
 ### Container Support
 

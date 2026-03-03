@@ -120,6 +120,46 @@ includes [nixpkgs], [uv2nix], and other flake inputs.
 $ nix flake update
 ```
 
+#### Using as a library overlay
+
+The flake exports `overlays.default`, an overlay for the [uv2nix]/[pyproject.nix] Python
+package set (not a nixpkgs overlay — the Python package building machinery is different
+from nixpkgs `buildPythonPackage`). It contains only the workspace member packages, not
+transitive dependencies from `uv.lock`. This lets other uv2nix-based projects consume
+your packages as library dependencies.
+
+> **Note:** uv and Nix are separate dependency resolution systems. The overlay makes
+> packages available to the Nix build, but uv still needs its own source for the
+> dependency. You'll need to declare the library in both places: as a flake input (for
+> Nix) and as a uv source (for `uv add` / `uv lock`). Typically this means adding a
+> `[tool.uv.sources]` entry pointing at the library's git repository.
+
+In the downstream consumer's `flake.nix`, add this flake as an input and compose the
+overlay into the consumer's `pyproject.nix` Python package set:
+
+```nix
+# consumer flake.nix (relevant parts)
+{
+  inputs.{{ cookiecutter.project_name }}.url = "github:owner/{{ cookiecutter.project_name }}";
+
+  outputs = { self, nixpkgs, {{ cookiecutter.project_name }}, ... }:
+  let
+    pkgs = nixpkgs.legacyPackages.x86_64-linux;
+    pythonSet = (pkgs.callPackage pyproject-nix.build.packages { inherit python; }).overrideScope
+      (lib.composeManyExtensions [
+        pyproject-build-systems.overlays.default
+        consumerOverlay
+        {{ cookiecutter.project_name }}.overlays.default   # <-- library overlay (last, to override uv source)
+      ]);
+  in { /* ... */ };
+}
+```
+
+The library overlay must be composed **after** the consumer's workspace overlay. The
+consumer's `uv.lock` contains its own source entry for the library package (e.g. a git
+or directory source from `[tool.uv.sources]`), and the library overlay overrides it with
+the Nix derivation from the flake input.
+
 ## Project layout
 
 This flake supports several [uv] project layouts out of the box. No changes to `flake.nix`
@@ -161,6 +201,7 @@ $ cruft update --checkout template
 [nixpkgs]: https://github.com/NixOS/nixpkgs
 [prek]: https://github.com/jdx/prek
 [pytest]: https://docs.pytest.org/
+[pyproject.nix]: https://github.com/pyproject-nix/pyproject.nix
 [python-base-flake]: https://github.com/schlarpc/python-base-flake
 [ruff]: https://docs.astral.sh/ruff/
 [skopeo]: https://github.com/containers/skopeo
