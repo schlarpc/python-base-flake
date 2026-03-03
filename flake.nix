@@ -187,6 +187,14 @@
             editablePythonSet.mkVirtualEnv "${projectName}-dev-env" workspace.deps.all
           );
 
+          # Build Sphinx documentation as a Nix output.
+          venvDoc = pythonSet.mkVirtualEnv "${projectName}-doc-env" workspace.deps.all;
+          doc = pkgs.runCommand "${projectName}-doc" { nativeBuildInputs = [ venvDoc ]; } ''
+            cp -r ${./.} source
+            chmod -R u+w source
+            sphinx-build source/docs $out/share/doc/${projectName}/html
+          '';
+
           # Build an "application" per workspace member that only exposes application binaries.
           memberApplications = lib.mapAttrs (
             name: _:
@@ -229,6 +237,7 @@
             // lib.optionalAttrs hasRootProject {
               default = memberApplications.${projectName};
               container = memberContainers.${projectName};
+              inherit doc;
             };
 
           checks.git-hooks = git-hooks.lib.${system}.run {
