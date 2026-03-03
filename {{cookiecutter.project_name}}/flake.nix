@@ -187,6 +187,14 @@
             editablePythonSet.mkVirtualEnv "${projectName}-dev-env" workspace.deps.all
           );
 
+          # Build Sphinx documentation as a Nix output.
+          venvDoc = pythonSet.mkVirtualEnv "${projectName}-doc-env" workspace.deps.all;
+          doc = pkgs.runCommand "${projectName}-doc" { nativeBuildInputs = [ venvDoc ]; } ''
+            cp -r ${./.} source
+            chmod -R u+w source
+            sphinx-build source/docs $out/share/doc/${projectName}/html
+          '';
+
           # Build an "application" per workspace member that only exposes application binaries.
           memberApplications = lib.mapAttrs (
             name: _:
@@ -229,6 +237,7 @@
             // lib.optionalAttrs hasRootProject {
               default = memberApplications.${projectName};
               container = memberContainers.${projectName};
+              inherit doc;
             };
 
           checks.git-hooks = git-hooks.lib.${system}.run {
@@ -324,12 +333,38 @@
               # Get repository root using git. This is expanded at runtime by the editable `.pth` machinery.
               export REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-              # Install pre-commit hooks to be installed into git
+              # Install git hooks
               ${self.checks.${system}.git-hooks.shellHook}
             '';
           };
 
-          formatter = pkgs.nixfmt-tree;
+          formatter = pkgs.nixfmt-tree.override {
+            runtimeInputs = [
+              venvDevelopment
+              pkgs.prettier
+            ];
+            settings.formatter = {
+              ruff-format = {
+                command = "ruff";
+                options = [ "format" ];
+                includes = [
+                  "*.py"
+                  "*.pyi"
+                ];
+              };
+              prettier = {
+                command = "prettier";
+                options = [ "--write" ];
+                includes = [
+                  "*.md"
+                  "*.json"
+                  "*.yaml"
+                  "*.yml"
+                ];
+                excludes = [ ".template/*/.cruft.json" ];
+              };
+            };
+          };
         };
 
       eachSystem = lib.genAttrs (import systems);
