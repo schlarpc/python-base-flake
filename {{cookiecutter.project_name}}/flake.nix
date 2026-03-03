@@ -377,5 +377,13 @@
         "formatter"
       ];
     in
-    flakeOutput;
+    flakeOutput
+    // {
+      overlays.default =
+        let
+          fullOverlay = overlay;
+          memberNames = builtins.attrNames workspace.deps.default;
+        in
+        final: prev: lib.filterAttrs (name: _: builtins.elem name memberNames) (fullOverlay final prev);
+    };
 }
