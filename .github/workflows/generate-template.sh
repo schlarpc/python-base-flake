@@ -28,8 +28,8 @@ while IFS= read -r -d '' entry; do
     fi
 done < <("${FILE_CMD[@]}")
 
-# Remove files only needed for template generation
-rm --recursive --force -- "$DEST/.template" "$DEST/.github/workflows/generate-template."{yml,sh}
+# Remove files only needed for template generation or this specific repo
+rm --recursive --force -- "$DEST/.template" "$DEST/.github/workflows/generate-template."{yml,sh} "$DEST/.github/workflows/auto-merge-dependabot.yml"
 
 # Normalize version so generated projects don't inherit the template repo's version
 sed --in-place 's/^version = ".*"/version = "0.1.0"/' "$DEST/pyproject.toml"
