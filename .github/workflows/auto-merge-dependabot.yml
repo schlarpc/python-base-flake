@@ -1,6 +1,9 @@
 name: Auto-merge Dependabot PRs
 
-on: pull_request_target
+on:
+  workflow_run:
+    workflows: ["Test"]
+    types: [completed]
 
 permissions:
   contents: write
@@ -8,16 +11,23 @@ permissions:
 
 jobs:
   auto-merge:
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.actor.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
-      - name: Approve PR
-        run: gh pr review --approve "$PR_URL"
+      - name: Find and merge Dependabot PR
         env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ github.token }}
-      - name: Enable auto-merge
-        run: gh pr merge --auto --squash "$PR_URL"
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          pr_number=$(gh api "repos/$REPO/commits/$HEAD_SHA/pulls" \
+            --jq 'map(select(.user.login == "dependabot[bot]")) | .[0].number')
+          if [ -z "$pr_number" ] || [ "$pr_number" = "null" ]; then
+            echo "No Dependabot PR found for SHA $HEAD_SHA"
+            exit 0
+          fi
+          gh pr review --approve "$pr_number" -R "$REPO"
+          gh pr merge --squash "$pr_number" -R "$REPO"
