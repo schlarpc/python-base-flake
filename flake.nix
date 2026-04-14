@@ -187,6 +187,17 @@
             editablePythonSet.mkVirtualEnv "${projectName}-dev-env" workspace.deps.all
           );
 
+          # dprint config generated in the nix store, using nix-packaged WASM plugins.
+          dprintConfig = (pkgs.formats.json { }).generate "dprint.json" {
+            plugins = pkgs.dprint-plugins.getPluginList (
+              plugins: with plugins; [
+                dprint-plugin-json
+                dprint-plugin-markdown
+                g-plane-pretty_yaml
+              ]
+            );
+          };
+
           # Build Sphinx documentation as a Nix output.
           venvDoc = pythonSet.mkVirtualEnv "${projectName}-doc-env" workspace.deps.all;
           doc = pkgs.runCommand "${projectName}-doc" { nativeBuildInputs = [ venvDoc ]; } ''
@@ -246,8 +257,11 @@
             hooks = {
               shellcheck.enable = true;
               nixfmt.enable = true;
-              prettier = {
+              dprint = {
                 enable = true;
+                name = "dprint";
+                package = pkgs.dprint;
+                entry = "${pkgs.dprint}/bin/dprint fmt --config ${dprintConfig}";
                 types_or = [
                   "markdown"
                   "json"
@@ -341,7 +355,7 @@
           formatter = pkgs.nixfmt-tree.override {
             runtimeInputs = [
               venvDevelopment
-              pkgs.prettier
+              pkgs.dprint
             ];
             settings.formatter = {
               ruff-format = {
@@ -352,16 +366,20 @@
                   "*.pyi"
                 ];
               };
-              prettier = {
-                command = "prettier";
-                options = [ "--write" ];
+              dprint = {
+                command = "dprint";
+                options = [
+                  "fmt"
+                  "--config"
+                  (toString dprintConfig)
+                ];
                 includes = [
                   "*.md"
                   "*.json"
                   "*.yaml"
                   "*.yml"
                 ];
-                excludes = [ ".template/*/.cruft.json" ];
+                excludes = [ ".template/**" ];
               };
             };
           };

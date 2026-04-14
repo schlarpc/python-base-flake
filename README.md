@@ -13,7 +13,7 @@ while staying reproducible and interoperable with the [Nix] ecosystem.
 - Fast container builds with [nix2container]
 - Unit testing with [pytest]
 - Type checking with [mypy]
-- Code formatting with [ruff], [Prettier], and [nixfmt]
+- Code formatting with [ruff], [dprint], and [nixfmt]
 - Code coverage with [Coverage.py]
 - Documentation with [Sphinx] and [MyST]
 - Automatic API documentation with [Sphinx AutoAPI] and [napoleon]
@@ -59,7 +59,7 @@ $ cruft create https://github.com/schlarpc/python-base-flake --checkout template
 [nixpkgs]: https://github.com/NixOS/nixpkgs
 [poetry2nix]: https://github.com/nix-community/poetry2nix
 [prek]: https://github.com/jdx/prek
-[prettier]: https://prettier.io/
+[dprint]: https://dprint.dev/
 [pytest]: https://docs.pytest.org/
 [ruff]: https://docs.astral.sh/ruff/
 [sphinx autoapi]: https://sphinx-autoapi.readthedocs.io/
