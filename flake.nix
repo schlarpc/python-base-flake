@@ -267,7 +267,7 @@
                   "json"
                   "yaml"
                 ];
-                excludes = [ "^\\.template/.+/\\.cruft\\.json$" ];
+                excludes = [ "^\\.template/" ];
               };
               mypy = {
                 enable = true;
