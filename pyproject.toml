@@ -19,7 +19,7 @@ dev = [
     "myst-parser>=4.0.1",
     "pytest>=9.0.3",
     "pytest-cov>=6.2.1",
-    "ruff>=0.15.11",
+    "ruff>=0.15.12",
     "sphinx>=8.2.3",
     "sphinx-autoapi>=3.8.0",
 ]
