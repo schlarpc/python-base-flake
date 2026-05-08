@@ -272,6 +272,8 @@
               mypy = {
                 enable = true;
                 package = venvDevelopment;
+                # Avoid parallel cache writes when prek splits files into batches.
+                require_serial = true;
               };
               ruff = {
                 enable = true;
