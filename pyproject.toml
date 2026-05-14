@@ -15,7 +15,7 @@ build-backend = "hatchling.build"
 [dependency-groups]
 dev = [
     "cruft[pyproject]>=2.16.0",
-    "mypy>=2.0.0",
+    "mypy>=2.1.0",
     "myst-parser>=4.0.1",
     "pytest>=9.0.3",
     "pytest-cov>=6.2.1",
